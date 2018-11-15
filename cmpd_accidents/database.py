@@ -13,7 +13,7 @@ class MongoDBConnect(object):
 		port: port to connect, if empty default to mongodb port
 		collection: the collection to use
 	"""
-	def __init__(self, host='localhost', port='27017', collection_name="accidents"):
+	def __init__(self, host='localhost', port=27017, collection_name="accidents"):
 		self.host = host
 		self.port = port
 		self.collection_name = collection_name

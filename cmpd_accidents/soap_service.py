@@ -2,6 +2,7 @@
 Module for SOAP interface
 """
 import requests
+
 from cmpd_accidents import Logger
 
 class SoapService(object):
@@ -24,8 +25,17 @@ class SoapService(object):
 		"""
 		try:
 			res = requests.post(self.wsdl, data=self.body, headers=self.headers)
-			self.logger.info("Successfully processed request, response: {0}".format(res))
-			return res.text
+			if res.status_code == requests.codes.ok:
+				self.logger.info("Successfully processed request, response: {0}".format(res.status_code))
+				return res.text
+			elif res.status_code == requests.codes.bad_request:
+				self.logger.error("Bad request, response: {0}".format(res.status_code))
+				raise Exception("Bad Request")
+			elif res.status_code == requests.codes.server_error:
+				self.logger.error("Internal Server error, response: {0}".format(res.status_code))
+				raise Exception("Internal Server Error")
+			else:
+				raise Exception("Something went wrong, check status or logs: {0}".format(res.status_code))
 		except Exception as e:
 			self.logger.exception(str(e))
 			raise e
