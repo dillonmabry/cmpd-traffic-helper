@@ -1,2 +1,2 @@
-# cmpd-traffic-helper
-Charlotte Mecklenburg open-source data store for live traffic updates and also analysis for traffic prediction modeling
+## CMPD Traffic Analysis Updater/Scraper (MongoDB/Python/SOAP Service)
+Updates MongoDB instance per traffic updates, can be set to run every 3-5 minutes per spec
