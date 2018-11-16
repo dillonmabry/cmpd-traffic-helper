@@ -1,4 +1,4 @@
-## CMPD Traffic Analysis Updater/Scraper (MongoDB/Python/SOAP Service)
+## CMPD Traffic Helper (Live Traffic Analysis for Charlotte, NC)
 CMPD Traffic Alerts service for persistence data and also any predictions/model analysis. Updater service as well as traditional ML model utilities.
 
 ## Install Instructions
