@@ -41,5 +41,7 @@ class MongoDBConnect(object):
             self.logger.info('Successfully inserted items: {0}'.format(str(items)))
         except PyMongoError as e:
             self.logger.exception('PyMongo error: {0}'.format(str(e)))
+            raise e
         except Exception as ex:
             self.logger.exception('Internal Server error: {0}'.format(str(ex)))
+            raise ex

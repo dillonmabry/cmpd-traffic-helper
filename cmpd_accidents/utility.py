@@ -6,7 +6,5 @@ def loadFileAsString(filepath):
         with open(filepath, 'r') as myfile:
             data = myfile.read()
             return data
-    except IOError as e:
+    except FileNotFoundError as e:
         raise e
-    except Exception as ex:
-        raise ex

@@ -34,6 +34,7 @@ class SoapService(object):
                 self.logger.error('Internal Server error, response: {0}'.format(res.status_code))
                 raise Exception('Internal Server Error')
             else:
+                self.logger.error('Something went wrong, response: {0}'.format(res.status_code))
                 raise Exception('Something went wrong, check status or logs: {0}'.format(res.status_code))
         except Exception as e:
             self.logger.exception(str(e))

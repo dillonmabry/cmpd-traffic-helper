@@ -25,8 +25,7 @@ class CMPDService(object):
         soap_res = self.soap_service.post()
         soup = BeautifulSoup(soap_res, 'lxml')
         current_accidents = soup.findAll('accidents')
-        current_events = [item.get_text() for item in
-                          soup.findAll('event_no')]
+        current_events = [item.get_text() for item in soup.findAll('event_no')]
 
         # Find old events from database that match current event ids
         old_events = []
@@ -39,8 +38,8 @@ class CMPDService(object):
         # Get differences and new accidents soup objects from diff ids
         diffs = set(current_events) - set(old_events)
         new_accidents = [item for item in current_accidents if any(diff in item.get_text() for diff in diffs)]
-        
-		# Cleanup bs4 tags convert to JSON to insert
+
+        # Cleanup bs4 tags convert to JSON to insert
         if new_accidents:
             clean_data = []
             for item in new_accidents:
