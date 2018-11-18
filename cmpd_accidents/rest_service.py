@@ -1,6 +1,6 @@
 import requests
 from requests.exceptions import RequestException
-from youtube_sentiment import Logger
+from cmpd_accidents import Logger
 
 class RestService(object):
     """
