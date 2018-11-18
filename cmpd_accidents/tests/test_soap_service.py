@@ -18,7 +18,7 @@ class TestSoapService(TestCase):
         body = """<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><CMPDAccidents xmlns="http://maps.cmpd.org/" /></soap:Body></soap:Envelope>"""
         headers = {'Content-Type': 'text/xml', 'accept': 'application/xml'}
         soap = cmpd_accidents.SoapService(wsdl, body, headers)
-        self.assertTrue(hasattr(soap, 'wsdl') and soap.wsdl == wsdl)
+        self.assertTrue(hasattr(soap, 'rest_service'))
         self.assertTrue(hasattr(soap, 'body') and soap.body == body)
         self.assertTrue(hasattr(soap, 'headers') and soap.headers == headers)
 
