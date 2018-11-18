@@ -10,7 +10,7 @@ from cmpd_accidents import loadFileAsString
 
 def update_traffic_data(host, port, collection):
     """
-    Updates traffic data for persistence
+    Updates traffic data for persistence Mongo connector
     Args:
         host: db host to connect to
         port: db port
@@ -18,14 +18,12 @@ def update_traffic_data(host, port, collection):
     """
     # DB Service
     db = MongoDBConnect(host, port, collection)
-
     # SOAP Service
     wsdl = 'http://maps.cmpd.org/datafeeds/gisservice.asmx?op=CMPDAccidents'
-    path = pkg_resources.resource_filename('cmpd_accidents', 'resources/')
+    path = pkg_resources.resource_filename('cmpd_accidents', 'resources/soap_descriptors/')
     body = loadFileAsString(path + 'cmpd_soap_descriptor.xml')
     headers = {'Content-Type': 'text/xml', 'accept': 'application/xml'}
     soap = SoapService(wsdl=wsdl, body=body, headers=headers)
-
     # CMPD Service
     cmpd = CMPDService(db, soap)
     cmpd.update_traffic_data()

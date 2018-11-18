@@ -38,6 +38,24 @@ class TestDatabase(TestCase):
         self.assertTrue('localhost:8888' in str(mock_db.collection))
         mock_db.__exit__(None, None, None)
 
+    def test_mysql_init(self):
+        mock_db = cmpd_accidents.SQLAlchemyConnect('mysql+pymysql://root:root@localhost:3306/db')
+        self.assertTrue(type(mock_db) == cmpd_accidents.SQLAlchemyConnect)
+        self.assertTrue(hasattr(mock_db, '__init__'))
+        self.assertTrue(hasattr(mock_db, '__enter__'))
+        self.assertTrue(hasattr(mock_db, '__exit__'))
+        self.assertTrue(hasattr(mock_db, '__init__'))
+        self.assertTrue(hasattr(mock_db, 'insert_bulk'))
+
+    def test_mysql_attributes(self):
+        mock_db = cmpd_accidents.SQLAlchemyConnect('mysql+pymysql://root:root@localhost:3306/db')
+        self.assertTrue(hasattr(mock_db, 'connection_string'))
+        self.assertTrue(mock_db.connection_string == 'mysql+pymysql://root:root@localhost:3306/db')
+        mock_db.__enter__()
+        self.assertTrue(hasattr(mock_db, 'engine'))
+        self.assertTrue(hasattr(mock_db, 'session'))
+        mock_db.__exit__(None, None, None)
+
     @classmethod
     def tearDownClass(self):
         """ Tear down """

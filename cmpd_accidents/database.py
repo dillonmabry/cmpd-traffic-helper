@@ -1,7 +1,13 @@
 """
 Generic database interface for defining connector services
+PyMongo is used for MongoDB related persistence
+SQLAlchemy is used for relational db type persistence
 """
-from pymongo import MongoClient
+from pymongo import MongoClient # pymongo
+from sqlalchemy import create_engine # sqlalchemy
+from sqlalchemy.orm import sessionmaker # sqlalchemy
+from sqlalchemy import MetaData # sqlalchemy
+from sqlalchemy import Table #sqlalchemy
 from urllib.parse import urlparse
 from cmpd_accidents import Logger
 
@@ -39,9 +45,43 @@ class MongoDBConnect(object):
         try:
             self.collection.insert(items)
             self.logger.info('Successfully inserted items: {0}'.format(str(items)))
-        except PyMongoError as e:
-            self.logger.exception('PyMongo error: {0}'.format(str(e)))
+        except Exception as e:
+            self.logger.exception('PyMongo database error: {0}'.format(str(e)))
             raise e
-        except Exception as ex:
-            self.logger.exception('Internal Server error: {0}'.format(str(ex)))
-            raise ex
+
+class SQLAlchemyConnect(object):
+    """
+    SQLAlchemy/MySQL connector
+    Args:
+        connection_string: The database connection string
+    """
+    def __init__(self, connection_string):
+        self.connection_string = connection_string
+        self.session = None
+        self.logger = Logger('log', self.__class__.__name__, maxbytes=10 * 1024 * 1024).get()
+
+    def __enter__(self):
+        self.engine = create_engine(self.connection_string)
+        Session = sessionmaker()
+        self.session = Session(bind=self.engine)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.session.close()
+
+    def insert_bulk(self, table, items):
+        """
+        SQLAlchemy bulk insert
+        Args:
+            items: list of json to insert
+            table: table to insert data
+        """
+        try:
+            metadata = MetaData(bind=self.engine, reflect=True)
+            active_table = Table(table, metadata, autoload=True, autoload_with=self.engine)
+            self.session.execute(active_table.insert(), items)
+            self.session.commit() # commit transaction
+            self.logger.info('Successfully inserted items: {0} into table: {1}'.format(str(items), active_table))
+        except Exception as e:
+            self.logger.exception('SQLAlchemy database error: {0}'.format(str(e)))
+            raise e

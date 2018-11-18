@@ -1,10 +1,9 @@
 """
 Module for CMPD Traffic business logic
 """
-from bs4 import BeautifulSoup
+from cmpd_accidents import SoupService
 
 class CMPDService(object):
-
     """
     Business logic service for manipulating/getting new data
     Args:
@@ -23,9 +22,9 @@ class CMPDService(object):
         """
         # Get current events and event ids
         soap_res = self.soap_service.post()
-        soup = BeautifulSoup(soap_res, 'lxml')
-        current_accidents = soup.findAll('accidents')
-        current_events = [item.get_text() for item in soup.findAll('event_no')]
+        soup_service = SoupService(text=soap_res, parse_type='lxml')
+        current_accidents = soup_service.findAll('accidents')
+        current_events = soup_service.get_text('event_no')
 
         # Find old events from database that match current event ids
         old_events = []
@@ -41,10 +40,5 @@ class CMPDService(object):
 
         # Cleanup bs4 tags convert to JSON to insert
         if new_accidents:
-            clean_data = []
-            for item in new_accidents:
-                json_obj = {}
-                for tag in item:
-                    json_obj[tag.name] = tag.get_text()
-                clean_data.append(json_obj)
-            self.database.insert_bulk(clean_data)
+            json_data = soup_service.get_json(new_accidents)
+            self.database.insert_bulk(json_data)
