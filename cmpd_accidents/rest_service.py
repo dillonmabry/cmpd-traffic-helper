@@ -12,7 +12,7 @@ class RestService(object):
         self.endpoint = endpoint
         self.session = requests.Session()
         self.session.headers.update({'Content-Type': 'application/json'}) # default app/json
-        self.logger = Logger(self.__class__.__name__, maxbytes=10*1024*1024).get()
+        self.logger = Logger('log', self.__class__.__name__, maxbytes=10*1024*1024).get()
 
     def __enter__(self):
         return self
