@@ -31,4 +31,3 @@ class TestWeatherService(TestCase):
             ) # fake API key via OpenWeatherAPI
         results = mock_weather.get(params={'lat': 35, 'lon': 139 })
         self.assertTrue(results is not None)
-        self.assertTrue(results.get('weather') is not None)
