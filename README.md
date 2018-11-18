@@ -8,8 +8,8 @@
 CMPD Traffic Alerts service for persistence data and also any predictions/model analysis. Updater service as well as traditional ML model utilities.
 
 APIs used:
-- Charlotte Mecklenburg Near-real time accident feeds
-- OpenWeatherAPI weather location information
+- Charlotte Mecklenburg Near-real time accident feeds http://maps.cmpd.org/trafficaccidents/default.aspx
+- OpenWeatherAPI weather location information https://openweathermap.org/api
 
 ## Install Instructions
 ```
