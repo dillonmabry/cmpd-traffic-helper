@@ -1,3 +1,4 @@
 include README.md
 include LICENSE
-include cmpd_accidents/resources/cmpd_soap_descriptor.xml
+include cmpd_accidents/resources/soap_descriptors/cmpd_soap_descriptor.xml
+include cmpd_accidents/resources/db/mysql_create_accidents.sql

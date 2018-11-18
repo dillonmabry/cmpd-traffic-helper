@@ -9,9 +9,10 @@ setup(name = 'cmpd_accidents',
     packages = ['cmpd_accidents'],
     test_suite = 'nose.collector',
     tests_require = ['nose'],
-    install_requires = ['pymongo', 'requests', 'bs4'],
+    install_requires = ['pymongo', 'requests', 'bs4', 'sqlalchemy', 'pymysql'],
     include_package_data = True,
     data_files = [('', [
-        'cmpd_accidents/resources/cmpd_soap_descriptor.xml'
+        'cmpd_accidents/resources/soap_descriptors/cmpd_soap_descriptor.xml',
+        'cmpd_accidents/resources/db/mysql_create_accidents.sql'
     ])],
     zip_safe = False)
