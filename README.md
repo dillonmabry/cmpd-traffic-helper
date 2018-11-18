@@ -27,7 +27,19 @@ or
 ```
 python main.py <MongoDB host> <MongoDB port> <MongoDB collection> <OpenWeather api key>
 ```
-
+It is preferable to setup a job-type service to run the API incrementally over time.
+Using cron via -nix type systems:
+Clone the current repo:
+```
+git clone https://github.com/dillonmabry/cmpd-traffic-helper
+```
+Setup cron job to run every 5 minutes:
+```
+crontab -e
+```
+```
+*/5 * * * * cd /home/pi/Python/cmpd-traffic-helper/cmpd_accidents && sudo python3 main.py mongodb://<user>:<password>@<host>/<databasename> <port> <collectionname> <OpenWeather api key>
+```
 ## Note on Persistence
 If you would rather use a relational persistence such as MySQL, the interface is already available for SQLAlchemy connect via the database module. Simply replace the logic operations in the business logic with defined operations from the database interface for SQLAlchemyConnect interface. Seed scripts are available in resources/db feel free to replace with what table definitions you prefer.
 
