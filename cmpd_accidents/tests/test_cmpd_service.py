@@ -3,8 +3,10 @@ from unittest.mock import patch
 import cmpd_accidents
 
 class TestCMPDService(TestCase):
-    """ Database integration tests """
-    def test_cmpd_init(self):
+    """ CMPD Service integration tests """
+    @classmethod
+    def setUpClass(self):
+        """ Setup """
         # SOAP
         wsdl = 'http://maps.cmpd.org/datafeeds/gisservice.asmx?op=CMPDAccidents'
         body = """<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><CMPDAccidents xmlns="http://maps.cmpd.org/" /></soap:Body></soap:Envelope>"""
@@ -18,8 +20,12 @@ class TestCMPDService(TestCase):
             apiKey='b6907d289e10d714a6e88b30761fae22'
             ) # fake API key via OpenWeatherAPI
         # CMPD
-        mock_cmpd = cmpd_accidents.CMPDService(mock_db, mock_soap, weather)
-        self.assertTrue(hasattr(mock_cmpd, 'database'))
-        self.assertTrue(hasattr(mock_cmpd, 'soap_service'))
-        self.assertTrue(hasattr(mock_cmpd, 'weather_service'))
-        self.assertTrue(hasattr(mock_cmpd, 'update_traffic_data'))
+        self.mock_cmpd = cmpd_accidents.CMPDService(mock_db, mock_soap, weather)
+
+    def test_cmpd_init(self):
+        self.assertTrue(hasattr(self.mock_cmpd, 'database'))
+        self.assertTrue(hasattr(self.mock_cmpd, 'soap_service'))
+        self.assertTrue(hasattr(self.mock_cmpd, 'weather_service'))
+        self.assertTrue(hasattr(self.mock_cmpd, 'update_traffic_data'))
+        self.assertTrue(hasattr(self.mock_cmpd, 'find_events'))
+        
