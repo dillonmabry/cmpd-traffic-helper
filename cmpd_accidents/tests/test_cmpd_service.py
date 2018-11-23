@@ -13,7 +13,7 @@ class TestCMPDService(TestCase):
         headers = {'Content-Type': 'text/xml', 'accept': 'application/xml'}
         mock_soap = cmpd_accidents.SoapService(wsdl, body, headers)
         # DB
-        mock_db = cmpd_accidents.MongoDBConnect("localhost", 27017, "accidents")
+        mock_db = cmpd_accidents.MongoDBConnect("localhost", 27017)
         # Weather
         weather = cmpd_accidents.WeatherService(
             endpoint='https://samples.openweathermap.org/data/2.5/weather',
@@ -27,5 +27,4 @@ class TestCMPDService(TestCase):
         self.assertTrue(hasattr(self.mock_cmpd, 'soap_service'))
         self.assertTrue(hasattr(self.mock_cmpd, 'weather_service'))
         self.assertTrue(hasattr(self.mock_cmpd, 'update_traffic_data'))
-        self.assertTrue(hasattr(self.mock_cmpd, 'find_events'))
         

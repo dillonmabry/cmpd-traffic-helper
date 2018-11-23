@@ -1,12 +1,12 @@
 from setuptools import setup
 
-setup(name = 'cmpd_accidents',
+setup(name = 'charlotte_traffic_analysis',
     version = '0.1.0',
-    description = 'Get CMPD Traffic Data via SOAP GIS Service',
+    description = 'Charlotte-metro traffic analysis helper including predictions, travel paths, and more',
     author = 'Dillon Mabry',
     author_email = 'rapid.dev.solutions@gmail.com',
     license = 'MIT',
-    packages = ['cmpd_accidents'],
+    packages = ['cmpd_accidents', 'traffic_analyzer'],
     test_suite = 'nose.collector',
     tests_require = ['nose'],
     install_requires = ['pymongo', 'requests', 'lxml', 'bs4', 'sqlalchemy', 'pymysql'],

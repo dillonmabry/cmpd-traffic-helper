@@ -16,23 +16,6 @@ class CMPDService(object):
         self.soap_service = soap_service
         self.weather_service = weather_service
 
-    def find_events(self, event_ids, cursor_limit):
-        """
-        Return existing events from persistence
-        Args:
-            event_ids: event ids of current accident events
-            cursor_limit: the number of records retrieved via cursor
-        """
-        exist_events = []
-        with self.database:
-            cursor = self.database.collection.find(
-                {'event_no': {'$in': event_ids}}, {'event_no': 1}
-                ).limit(cursor_limit)
-            for doc in cursor:
-                if doc.get('event_no'):
-                    exist_events.append(doc.get('event_no'))
-        return exist_events
-
     def update_traffic_data(self):
         """
         Update the traffic data persistence
@@ -44,7 +27,8 @@ class CMPDService(object):
         current_ids = soup_service.get_text('event_no')
 
         # Find existing events from persistence that match current event ids
-        exist_events = self.find_events(event_ids=current_ids, cursor_limit=500)
+        with self.database as db:
+            exist_events = db.find_ids(collection="accidents", ids=current_ids, cursor_limit=500)
 
         # Get differences and new accidents soup objects from diff ids
         diffs = set(current_ids) - set(exist_events)
@@ -53,12 +37,15 @@ class CMPDService(object):
         # Cleanup bs4 tags convert to JSON to insert for cleaned data
         if new_accidents:
             json_data = soup_service.get_json(new_accidents)
-            # Add weather API data for new accidents identified for each json object
             final_data = []
             for json in json_data:
                 weather_details = self.weather_service.get(
-                    params={'lat': json.get('latitude'), 'lon': json.get('longitude')}
+                    params={
+                        'lat': json.get('latitude'),
+                        'lon': json.get('longitude')
+                        }
                     )
-                json["weatherInfo"] = weather_details
+                json["weatherInfo"] = weather_details # Weather API data to dictionary
                 final_data.append(json)
-            self.database.insert_bulk(final_data) # persist data
+            with self.database as db:
+                db.insert_bulk(collection="accidents", items=final_data) # persist data
