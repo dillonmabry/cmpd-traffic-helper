@@ -22,9 +22,9 @@ class TestRestService(TestCase):
         self.assertTrue(hasattr(mock_rest, 'get'))
         self.assertTrue(hasattr(mock_rest, 'post'))
 
-    @patch('cmpd_accidents.RestService')
-    def test_rest_bad_req(self, RestMock):
-        RestMock.return_value.get.return_value.status_code = requests.codes.bad_request
-        mock = cmpd_accidents.RestService('https://www.google.com')
-        result = mock.get(params={})
-        print(result.status_code == requests.codes.bad_request)
+    def test_rest_operations(self):
+        mock_rest = cmpd_accidents.RestService('https://www.google.com')
+        inst = mock_rest.__enter__()
+        print(type(inst))
+        self.assertTrue(type(inst) == type(mock_rest))
+        mock_rest.__exit__(None, None, None)
