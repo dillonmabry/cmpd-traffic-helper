@@ -78,3 +78,9 @@ python setup.py test
 - [ ] Finalize Python package for project
 - [ ] Fix any new bugs
 - [ ] Create web based portal
+
+## Exploratory Analysis
+
+Based on sample size of over 2000 accidents in the Charlotte-Mecklenburg area from mid November to early December 2018
+
+Initial Plotly scattermap: https://plot.ly/~rapid.dev.solutions/8/charlotte-mecklenburg-accidents-by-type-nov-dec-2018/#/
