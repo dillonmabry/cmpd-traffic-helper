@@ -73,6 +73,7 @@ python setup.py test
 - [X] Add integration tests
 - [X] Setup Travis CI integration
 - [ ] Create initial Python package and push to PyPI
+- [ ] Exploratory Data Analysis
 - [ ] Analyze existing traffic prediction models and develop mock model
 - [ ] Utilize created model to provide insight for updated/real time traffic analysis
 - [ ] Finalize Python package for project
