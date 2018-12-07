@@ -83,4 +83,9 @@ python setup.py test
 
 Based on sample size of over 2000 accidents in the Charlotte-Mecklenburg area from mid November to early December 2018
 
-Initial Plotly scattermap: https://plot.ly/~rapid.dev.solutions/8/charlotte-mecklenburg-accidents-by-type-nov-dec-2018/#/
+R Notebook: ~To-be-added
+
+## Model Generation
+Python: ~To-be-added: model generation with utility
+
+IPython model performance and benchmarking
