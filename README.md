@@ -1,4 +1,4 @@
-## CMPD Traffic Helper (Live Traffic Analysis for Charlotte, NC)
+## CMPD Traffic Helper (Traffic Analysis for Charlotte, NC)
 [![Build Status](https://travis-ci.org/dillonmabry/cmpd-traffic-helper.svg?branch=master)](https://travis-ci.org/dillonmabry/cmpd-traffic-helper)
 [![Python 3.4](https://img.shields.io/badge/python-3.4-blue.svg)](https://www.python.org/downloads/release/python-340/)
 [![Python 3.5](https://img.shields.io/badge/python-3.5-blue.svg)](https://www.python.org/downloads/release/python-350/)
