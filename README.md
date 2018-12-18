@@ -11,6 +11,10 @@ APIs used:
 - Charlotte Mecklenburg Near-real time accident feeds http://maps.cmpd.org/trafficaccidents/default.aspx
 - OpenWeatherAPI weather location information https://openweathermap.org/api
 
+Data used:
+-NC-DOT ARC GIS
+-Charlotte Open Data Portal
+
 ## Install Instructions
 ```
 pip install .
@@ -72,21 +76,18 @@ python setup.py test
 - [X] Setup generic persistence for use of different databases (MySQL, etc.)
 - [X] Add integration tests
 - [X] Setup Travis CI integration
-- [ ] Create initial Python package and push to PyPI
 - [ ] Exploratory Data Analysis
 - [ ] Analyze existing traffic prediction models and develop mock model
-- [ ] Utilize created model to provide insight for updated/real time traffic analysis
-- [ ] Finalize Python package for project
+- [ ] Utilize created model to provide insight for current traffic patterns and information
+- [ ] Finalize and push Python package to PyPI
 - [ ] Fix any new bugs
-- [ ] Create web based portal
+- [ ] Create web based portal with interactivity
 
 ## Exploratory Analysis
 
-Based on sample size of over 2000 accidents in the Charlotte-Mecklenburg area from mid November to early December 2018
+Based on sample size of over 3000 accidents in the Charlotte-Mecklenburg area from mid November to early December 2018
 
-R Notebook: ~To-be-added
+R Notebook: https://dillonmabry.github.io/cmpd-accidents-analysis/
 
 ## Model Generation
 Python: ~To-be-added: model generation with utility
-
-IPython model performance and benchmarking
