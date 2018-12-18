@@ -12,8 +12,8 @@ APIs used:
 - OpenWeatherAPI weather location information https://openweathermap.org/api
 
 Data used:
--NC-DOT ARC GIS
--Charlotte Open Data Portal
+- NC-DOT ARC GIS
+- Charlotte Open Data Portal
 
 ## Install Instructions
 ```
