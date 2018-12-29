@@ -7,6 +7,13 @@
 
 CMPD Traffic Alerts service for persistence data and also any predictions/model analysis. Updater service as well as traditional ML model utilities.
 
+## Goals of Project
+- Identify areas of improvement in Charlotte traffic flow
+- Identify problems areas, specific roads needing attention
+- Identify likelihood/chances of accidents based on certain conditions
+- Provide data for accident/feature correlation/relationships
+- Any other uses needed
+
 APIs used:
 - Charlotte Mecklenburg Near-real time accident feeds http://maps.cmpd.org/trafficaccidents/default.aspx
 - OpenWeatherAPI weather location information https://openweathermap.org/api
@@ -48,6 +55,7 @@ crontab -e
 If you would rather use a relational persistence such as MySQL, the interface is already available for SQLAlchemy connect via the database module. Simply replace the "collection" argument with "table" for relational persistence. Seed scripts are available in resources/db feel free to replace with what table definitions you prefer.
 
 Class Examples:
+
 Relational
 ```
 from cmpd_accidents import SQLAlchemyConnect
@@ -76,8 +84,8 @@ python setup.py test
 - [X] Setup generic persistence for use of different databases (MySQL, etc.)
 - [X] Add integration tests
 - [X] Setup Travis CI integration
-- [ ] Exploratory Data Analysis
-- [ ] Analyze existing traffic prediction models and develop mock model
+- [X] Exploratory Data Analysis
+- [X] Analyze existing traffic prediction models and develop mock model
 - [ ] Utilize created model to provide insight for current traffic patterns and information
 - [ ] Finalize and push Python package to PyPI
 - [ ] Fix any new bugs
