@@ -48,5 +48,4 @@ class TestCMPDService(TestCase):
         # CMPD
         mock_cmpd = cmpd_accidents.CMPDService(mock_db, mock_soap, weather)
         self.assertTrue(hasattr(mock_cmpd, "update_traffic_data"))
-        result = mock_cmpd.update_traffic_data()
-        self.assertTrue(result == None)
+        mock_cmpd.update_traffic_data()

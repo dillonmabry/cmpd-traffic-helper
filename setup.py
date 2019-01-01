@@ -9,7 +9,7 @@ setup(name = 'charlotte_traffic_analysis',
     packages = ['cmpd_accidents', 'traffic_analyzer'],
     test_suite = 'nose.collector',
     tests_require = ['nose'],
-    install_requires = ['pymongo', 'requests', 'lxml', 'bs4', 'sqlalchemy', 'pymysql'],
+    install_requires = ['pymongo', 'requests', 'lxml', 'bs4', 'sqlalchemy', 'pymysql', 'scikit-learn'],
     include_package_data = True,
     data_files = [('', [
         'cmpd_accidents/resources/soap_descriptors/cmpd_soap_descriptor.xml',

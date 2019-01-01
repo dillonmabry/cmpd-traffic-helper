@@ -68,6 +68,22 @@ class MongoDBConnect(object):
             self.logger.exception('PyMongo database error: {0}'.format(str(e)))
             raise e
 
+    def get_all(self, collection, limit):
+        """
+        MongoDB get all items
+        Args:
+            collection: collection to get from
+            limit: integer of limit of items to retrieve, ie, 1000, 2000, etc.
+        """
+        try:
+            collection = self.connection[urlparse(self.host).path[1:]][collection]
+            items = collection.find().sort('datetime_add', 1).limit(limit) # oldest
+            self.logger.info('Successfully found items based on limit: {0}'.format(str(limit)))
+            return items
+        except Exception as e:
+            self.logger.exception('PyMongo database error: {0}'.format(str(e)))
+            raise e
+
 class SQLAlchemyConnect(object):
     """
     SQLAlchemy/MySQL connector
@@ -123,6 +139,22 @@ class SQLAlchemyConnect(object):
             self.session.execute(active_table.insert(), items)
             self.session.commit() # commit transaction
             self.logger.info('Successfully inserted items: {0} into table: {1}'.format(str(items), active_table))
+        except Exception as e:
+            self.logger.exception('SQLAlchemy database error: {0}'.format(str(e)))
+            raise e
+
+    def get_all(self, table):
+        """
+        SQLAlchemy get all items
+        Args:
+            table: table to get from
+        """
+        try:
+            metadata = MetaData(bind=self.engine, reflect=True)
+            active_table = Table(table, metadata, autoload=True, autoload_with=self.engine)
+            items = self.session.query(active_table).all()
+            self.logger.info('Successfully retrieved selected items: {0} from table: {1}'.format(str(items), active_table))
+            return items
         except Exception as e:
             self.logger.exception('SQLAlchemy database error: {0}'.format(str(e)))
             raise e
