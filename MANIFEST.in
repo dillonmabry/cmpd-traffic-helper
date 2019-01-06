@@ -2,3 +2,8 @@ include README.md
 include LICENSE
 include cmpd_accidents/resources/soap_descriptors/cmpd_soap_descriptor.xml
 include cmpd_accidents/resources/db/mysql_create_accidents.sql
+include traffic_analyzer/resources/census_income.csv
+include traffic_analyzer/resources/census_population.csv
+include traffic_analyzer/resources/roads.csv
+include traffic_analyzer/resources/signals.csv
+include traffic_analyzer/resources/traffic_volumes.csv
