@@ -5,6 +5,8 @@ import argparse
 from traffic_analyzer import XGModel
 from traffic_analyzer import create_train_test_data
 
+from sklearn.metrics import accuracy_score
+
 def create_xg_model(trainset, labels, numeric, categorical):
     """
     Args:
@@ -30,14 +32,32 @@ def main():
     new_parser.add_argument('host', help='Enter the db host to connect, full connection string for training data')
     new_parser.add_argument('port', help='Enter the db port to connect, for training data', type=int)
     args = parser.parse_args()
-    if 'model_type' in args:
+    if 'model_type' in args: # New model
         if args.model_type == 'xgb':
-            #trainset, trainlabels, testset, testlabels = create_train_test_data(host=args.host, port=args.port, holdout_size=0.2)
-            test = create_train_test_data(host=args.host, port=args.port, holdout_size=0.2)
+            X_train, y_train, X_test, y_test = create_train_test_data(host=args.host, port=args.port, holdout_size=0.2)
+            model = create_xg_model(
+                trainset = X_train, 
+                labels = y_train, 
+                numeric = (10, 16, 17, 18, 20, 24, 26, 30, 31, 33, 37, 46, 47, 48), # assign numeric columns
+                categorical = (3, 40, 41, 42, 44, 45, 49, 50) # assign categorical columns
+            )
+            preds = model.predict(X_test)
+            predictions = [pred[1] for pred in preds]
+            accuracy = accuracy_score(y_test, predictions)
+            print(accuracy)
         else:
             print("RF")
-    else: # Load existing model from pkg_resources
+    else: # Existing model
         return None
+
+    # Predicting setup
+    #parser.add_argument('predict',
+    #    help='Enter the csv file of the observations/test data to predict'
+    #)
+    # preds = model.predict(load_csv('./predictions'))
+    # predictions = [pred[1] for pred in preds]
+    # accuracy = accuracy_score(y_test, predictions)
+    # print(accuracy)
 
 if __name__ == '__main__':
     main()

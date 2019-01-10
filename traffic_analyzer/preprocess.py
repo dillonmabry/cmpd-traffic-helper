@@ -5,13 +5,16 @@ from cmpd_accidents import MongoDBConnect # Connect to database for train data
 from traffic_analyzer import load_csv # Load pkg_resources, extra featuresets
 from traffic_analyzer import haversine_np # Coordinates distances
 import pandas as pd # Dataframes
+from pandas.io.json import json_normalize # Flatten Mongo JSON for dataframe
 import re # Text filtering
 import numpy as np # Continuous features
-import datetime as datetime # Time Series
 from shapely.geometry import Point, LineString # Spatial features
-from pandas.io.json import json_normalize # Flatten Mongo JSON for dataframe
 from sklearn.model_selection import train_test_split # Train/test split
+from sklearn.preprocessing import MinMaxScaler # Feature scaling for K-Means
 from sklearn.cluster import KMeans # Feature generation
+import random # Base libs
+import itertools # Base libs
+import datetime as datetime # Base libs
 
 def clean_data(data):
     """
@@ -21,9 +24,8 @@ def clean_data(data):
     Features cleaned:
         - Address, known issue with reporting via CMPD as "&" for error address
     """
-    new_data = data.drop(data[data["address"] == "&"].index)
-    new_data = new_data.fillna(new_data.mean())
-    return new_data
+    cleansed_data = data.fillna(data.mean())
+    return cleansed_data
 
 def find_first_word(address):
     """
@@ -44,19 +46,19 @@ def find_first_word(address):
     else:
         return first_word
 
-def extract_speed(road_type):
+def extract_speed(address):
     """
     Generate generic speed limits for known roads
     Args:
         road_type: the road to analyze
     """
-    if road_type == "HY" or road_type == "FR": # Highways/freeways
+    if "HY" in address or "FR" in address: # Highways/freeways
         return 70
-    elif road_type == "RD": # Generic roads
+    elif "RD" in address: # Generic roads
         return 45
-    elif road_type == "ST": # City streets
+    elif "RP" in address: # Ramps
         return 35
-    elif road_type == "RP": # Ramps
+    elif re.search("([0-9]+)(ST|ND|RD|TH)", str(address)): # Ordinal streets
         return 35
     else:
         return 45 # Generic speed limit
@@ -86,31 +88,6 @@ def join_features(data):
     data["new.minute"] = data["datetime_add"].dt.minute
     data["new.day_of_week"] = data["datetime_add"].dt.dayofweek
 
-    # Signals info
-    signals_near = []
-    for i, row in data.iterrows():
-        dists = haversine_np(signals["Y"], signals["X"], row["latitude"], row["longitude"])
-        near = len(dists[dists < 500])
-        signals_near.append(near)
-    data["new.signals_near"] = signals_near
-
-    # Traffic info
-    meck_vols = traffic_vol[(traffic_vol["COUNTY"] == "MECKLENBURG") & (traffic_vol["2016"] != ' ')][["ROUTE", "2016"]]
-    meck_vols["2016"] = meck_vols["2016"].astype(int)
-    grouped = meck_vols.groupby(["ROUTE"], as_index=False).mean()
-    mean_vols = []
-    for i, row in data.iterrows():
-        first_word = find_first_word(row["address"])
-        if first_word:
-            vol = grouped[grouped["ROUTE"].str.contains(first_word, na=False)]["2016"]
-            mean_vols.append(vol.mean())
-        else:
-            mean_vols.append(0)
-    data["new.mean_vol"] = mean_vols
-
-    # Speed limit
-    data["new.speed_limit"] = roads["STREETTYPE"].apply(lambda x: extract_speed(x))
-
     # Road curvature
     road_curves = []
     for i, row in roads.iterrows():
@@ -133,55 +110,105 @@ def join_features(data):
         curve = (line.length / dist) if dist != 0 else 0
         road_curves.append(curve)
     roads["curve"] = road_curves
+
+    # Traffic info
+    meck_vols = traffic_vol[(traffic_vol["COUNTY"] == "MECKLENBURG") & (traffic_vol["2016"] != ' ')][["ROUTE", "2016"]]
+    meck_vols["2016"] = meck_vols["2016"].astype(int)
+    grouped = meck_vols.groupby(["ROUTE"], as_index=False).mean()
+    mean_vols = []
     mean_curves = []
     mean_lengths = []
+    signals_near = []
+    road_names = []
     for i, row in data.iterrows():
-        matches = re.findall(r"[A-Za-z]+",row["address"])
-        words = [word for word in matches if len(word) > 2]
-        first_word = words[0] if words else None
+        first_word = find_first_word(row["address"])
+        # Road information
         if first_word:
-            curve = roads[roads["STREETNAME"].str.contains(first_word, na=False)]["curve"]
-            length = roads[roads["STREETNAME"].str.contains(first_word, na=False)]["ShapeSTLength"]
-            mean_curves.append(curve.mean())
-            mean_lengths.append(length.mean())
+            vols = grouped[grouped["ROUTE"].str.contains(first_word, na=False)]["2016"]
+            curves = roads[roads["STREETNAME"].str.contains(first_word, na=False)]["curve"]
+            lengths = roads[roads["STREETNAME"].str.contains(first_word, na=False)]["ShapeSTLength"]
+            roads_matched = roads[roads["STREETNAME"].str.contains(first_word, na=False)]["STREETNAME"]
+            freq_roads = roads_matched.mode()
+            road_names.append(freq_roads.iloc[0] if freq_roads.any() else "GENERIC_STREET")
+            mean_vols.append(vols.mean())
+            mean_curves.append(curves.mean())
+            mean_lengths.append(lengths.mean())
         else:
+            road_names.append("GENERIC_STREET")
+            mean_vols.append(0)
             mean_curves.append(0)
             mean_lengths.append(0)
+        # Signals
+        dists = haversine_np(signals["Y"], signals["X"], row["latitude"], row["longitude"])
+        near = len(dists[dists < 500])
+        signals_near.append(near)
+
+    data["new.road_name"] = road_names
     data["new.mean_curve"] = mean_curves
     data["new.mean_length"] = mean_lengths
+    data["new.mean_vol"] = mean_vols
+    data["new.signals_near"] = signals_near
+    data["new.speed_limit"] = data["address"].apply(lambda x: extract_speed(x))
 
-    # Road IDs
-    # TODO Add unique road identifiers
-    
+    # TODO: Add census information to be joined spatially via accident coordinates
     # Census info
     census_info = pd.merge(income, pop, how="left", on=["coordinates"])
 
     # Clean data before further preprocessing
     cleansed_data = clean_data(data)
 
-    # KMeans road features
+    # KMeans road features, standardize road curvatures/lengths features before processing
     matrix = cleansed_data[["new.mean_length", "new.mean_curve", "new.speed_limit"]].values
-    kroad = KMeans(n_clusters=5, random_state=1234).fit(matrix)
+    scaler = MinMaxScaler()
+    scaled_matrix = scaler.fit_transform(matrix)
+    kroad = KMeans(n_clusters=5, random_state=1234).fit(scaled_matrix) # Optimal k = 5 based on SSE metrics
     labels = kroad.labels_
     cleansed_data["new.road_cluster"] = labels
 
     # Return finalized
     return cleansed_data
 
-def generate_non_accidents(data, start_date, end_date, iterations):
+def generate_non_accidents(data, iterations):
     """
     Args:
         data: dataframe of existing accidents to utilize for generation
-        start_date: starting date to setup temporal training data
-        end_date: end date for temporal data, these dates will be constrained as dates to be used
         iterations: iterations to perform for generating training data, ie, (1, 2, ...)
     Returns dataset of non-accidents
+    Method of generation:
+    For each positive sample (accident) change value of one feature from the following features:
+    ( hour, day, road )
+    If the result is negative, we add to negative pool of samples
+    Dataset should contain at least 3-4 times negative samples to positive for proper oversampling
     """
-    # For each positive sample (accident) change value of one feature from the following features:
-    # [ hour, day, road ]
-    # If the result is negative, we add to negative pool
-    # Dataset should contain at least 3-4 times negative samples to positive for proper oversampling
-    return None
+    choices = ["new.hour", "new.day", "new.road_name"]
+    hours = data["new.hour"].unique()
+    days = data["new.day"].unique()
+    roads = data["new.road_name"].unique()
+    feature_choice = random.choice(choices)
+    cols = data.columns.tolist()
+    non_accidents = pd.DataFrame(columns=cols)
+    data_matrix = data.as_matrix().tolist()
+    for _ in itertools.repeat(None, iterations):
+        non_accs = pd.DataFrame(columns=cols)
+        for i, row in data.iterrows():
+            acc_rec = row
+            if feature_choice == "new.hour":
+                random_choice = np.asscalar(np.random.choice(hours, 1))
+                acc_rec[feature_choice] = random_choice
+            elif feature_choice == "new.day":
+                random_choice = np.asscalar(np.random.choice(days, 1))
+                acc_rec[feature_choice] = random_choice
+            else:
+                random_choice = np.asscalar(np.random.choice(roads, 1))
+                acc_rec[feature_choice] = random_choice
+            if acc_rec.tolist() in data_matrix:
+                continue
+            else:
+                non_accs.loc[i] = acc_rec
+        non_accidents = non_accidents.append(non_accs, ignore_index=True)
+
+    print("Generated {0} non-accidents to go with {1} accidents".format(len(non_accidents), len(data)))
+    return non_accidents
 
 def create_train_test_data(host, port, holdout_size=0.2):
     """
@@ -204,23 +231,20 @@ def create_train_test_data(host, port, holdout_size=0.2):
 
     # Append any joined information (new.street_name, new.speed_limit, pop_sq_mile, median_age)
     accidents = join_features(db_accidents)
-    #accidents["is_accident"] = 1
 
     # Create the oversampling of non-accidents
-    #non_accidents = generate_non_accidents(
-    #    data = accidents,
-    #    start_date = min(accidents["datetime_add"]),
-    #    end_date = max(accidents["datetime_add"]),
-    #    iterations = 3
-    #)
-    #non_accidents["is_accident"] = 0
+    non_accidents = generate_non_accidents(
+       data = accidents,
+       iterations = 3
+    )
+    accidents["is_accident"] = 1
+    non_accidents["is_accident"] = 0
 
     # Join final training dataset (accidents with non-accidents)
-    #trainset = pd.concat([accidents, non_accidents])
+    trainset = pd.concat([accidents, non_accidents])
 
     # Return train set and final holdout set based on defined percent
-    # X = trainset.iloc[:, :-1].values
-    # y = trainset["is_accident"].values
-    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=1234)
-    #return X_train, y_train, X_test, y_test
-    return True
+    X = trainset.iloc[:, :-1].values
+    y = trainset["is_accident"].values
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=1234)
+    return X_train, y_train, X_test, y_test

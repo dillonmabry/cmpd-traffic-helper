@@ -20,6 +20,17 @@ def load_model(filename):
         except Exception as e:
             raise e
 
+def dump_model(model, model_name):
+    """
+    Args:
+        model_name: name to save model
+    Dumps model for use
+    """
+    try:
+        joblib.dump(model, model_name)
+    except Exception as e:
+        raise e
+
 def load_csv(filename):
     """
     Method to load csv files

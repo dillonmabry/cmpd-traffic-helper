@@ -64,7 +64,7 @@ class XGModel(object):
         Predicts class from list of observations
         Args:
             observations: list of observations with appropriate features processed
-        Returns list of tuples -> observations tagged with prediction 0 vs. 1
+        Returns list of tuples -> observa;tions tagged with prediction 0 vs. 1
         """
         predictions = self.model.predict(observations)
         return list(zip(observations, predictions))
