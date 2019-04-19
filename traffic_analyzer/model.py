@@ -9,11 +9,13 @@ from sklearn.impute import SimpleImputer
 from traffic_analyzer import ColumnExtractor
 from sklearn.model_selection import GridSearchCV
 
+
 class XGModel(object):
     """
     XGBoost wrapper class 
     https://xgboost.readthedocs.io/en/latest/python/python_api.html
     """
+
     def __init__(self):
         self.model = None
 
@@ -39,10 +41,10 @@ class XGModel(object):
                     ('onehot', OneHotEncoder(handle_unknown='ignore')),
                 ])),
             ])),
-            ('clf', XGBClassifier()) # Classifier
+            ('clf', XGBClassifier())  # Boosted trees classifier
         ])
         pipeline.fit(X, y)
-        params = {
+        params = {  # Params to be defined based on testing
             'clf__max_depth': [5, 10, 15, 20],
             'clf__learning_rate': [0.001, 0.01, 0.1],
             'clf__n_estimators': [100, 1000],
@@ -53,7 +55,7 @@ class XGModel(object):
         gridsearch = GridSearchCV(
             estimator=pipeline,
             param_grid=params,
-            scoring='neg_mean_squared_error',
+            scoring='f1',  # F1 scoring for imbalanced data
             cv=cv
         )
         gridsearch.fit(X, y)
@@ -69,10 +71,12 @@ class XGModel(object):
         predictions = self.model.predict(observations)
         return list(zip(observations, predictions))
 
+
 class RFModel(object):
     """
     RandomForest wrapper class 
     https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
     """
+
     def __init__(self, model):
         self.model = None

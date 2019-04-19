@@ -3,10 +3,12 @@ Util module for custom ML pipeline functions for feature extraction
 """
 import numpy as np
 
+
 class ColumnExtractor(object):
     """
     Class to extract columns based on selected and transform
     """
+
     def __init__(self, cols):
         """
         Args:

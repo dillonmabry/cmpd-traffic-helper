@@ -3,6 +3,7 @@ from unittest.mock import patch, Mock
 import requests
 import cmpd_accidents
 
+
 class TestRestService(TestCase):
     """ REST service integration tests """
     @patch('cmpd_accidents.RestService')

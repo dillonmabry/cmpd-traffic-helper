@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.externals import joblib
 import pkg_resources
 
+
 def load_model(filename):
     """
     Method to load ML pipeline model via pickle
@@ -20,6 +21,7 @@ def load_model(filename):
         except Exception as e:
             raise e
 
+
 def dump_model(model, model_name):
     """
     Args:
@@ -31,6 +33,7 @@ def dump_model(model, model_name):
     except Exception as e:
         raise e
 
+
 def load_csv(filename):
     """
     Method to load csv files
@@ -38,12 +41,14 @@ def load_csv(filename):
         filename: the file name of the .csv
     Returns Pandas dataframe from csv
     """
-    file_path = pkg_resources.resource_filename('traffic_analyzer', 'resources/')
+    file_path = pkg_resources.resource_filename(
+        'traffic_analyzer', 'resources/')
     with (open(file_path + filename, "rb")) as f:
         try:
             return pd.read_csv(f)
         except Exception as e:
             raise e
+
 
 def haversine_np(lon1, lat1, lon2, lat2):
     """
@@ -57,5 +62,5 @@ def haversine_np(lon1, lat1, lon2, lat2):
     dlat = lat2 - lat1
     a = np.sin(dlat/2.0)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2.0)**2
     c = 2 * np.arcsin(np.sqrt(a))
-    m = 6367000 * c # meters
+    m = 6367000 * c  # meters
     return m

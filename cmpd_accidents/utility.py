@@ -1,6 +1,8 @@
 """
 Module for helper functions
 """
+
+
 def loadFileAsString(filepath):
     try:
         with open(filepath, 'r') as myfile:

@@ -4,6 +4,7 @@ https://openweathermap.org/api
 """
 from cmpd_accidents import RestService
 
+
 class WeatherService(object):
     """
     Class for Weather API operations
@@ -12,6 +13,7 @@ class WeatherService(object):
         apiKey: the API key to use
         headers: headers to send
     """
+
     def __init__(self, endpoint, apiKey):
         self.apiKey = apiKey
         self.rest_service = RestService(endpoint=endpoint)

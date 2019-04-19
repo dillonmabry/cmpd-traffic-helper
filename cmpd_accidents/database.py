@@ -3,13 +3,14 @@ Generic database interface for defining connector services
 PyMongo is used for MongoDB related persistence
 SQLAlchemy is used for relational db type persistence
 """
-from pymongo import MongoClient # pymongo
-from sqlalchemy import create_engine # sqlalchemy
-from sqlalchemy.orm import sessionmaker # sqlalchemy
-from sqlalchemy import MetaData # sqlalchemy
-from sqlalchemy import Table #sqlalchemy
+from pymongo import MongoClient  # pymongo
+from sqlalchemy import create_engine  # sqlalchemy
+from sqlalchemy.orm import sessionmaker  # sqlalchemy
+from sqlalchemy import MetaData  # sqlalchemy
+from sqlalchemy import Table  # sqlalchemy
 from urllib.parse import urlparse
 from cmpd_accidents import Logger
+
 
 class MongoDBConnect(object):
     """
@@ -19,15 +20,18 @@ class MongoDBConnect(object):
         port: port to connect, if empty default to mongodb port
         collection: the collection to use
     """
+
     def __init__(self, host='localhost', port=27017):
         self.host = host
         self.port = port
         self.connection = None
-        self.logger = Logger('log', self.__class__.__name__, maxbytes=10 * 1024 * 1024).get()
+        self.logger = Logger('log', self.__class__.__name__,
+                             maxbytes=10 * 1024 * 1024).get()
 
     def __enter__(self):
         self.connection = MongoClient(self.host, self.port)
-        self.logger.info('Mongo connection created: {0}'.format(self.connection))
+        self.logger.info(
+            'Mongo connection created: {0}'.format(self.connection))
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -43,8 +47,10 @@ class MongoDBConnect(object):
         """
         try:
             exist_events = []
-            collection = self.connection[urlparse(self.host).path[1:]][collection]
-            cursor = collection.find({'event_no': {'$in': ids}}, {'event_no': 1}).limit(cursor_limit)
+            collection = self.connection[urlparse(
+                self.host).path[1:]][collection]
+            cursor = collection.find({'event_no': {'$in': ids}}, {
+                                     'event_no': 1}).limit(cursor_limit)
             for doc in cursor:
                 if doc.get('event_no'):
                     exist_events.append(doc.get('event_no'))
@@ -61,9 +67,11 @@ class MongoDBConnect(object):
             items: list of json to insert
         """
         try:
-            collection = self.connection[urlparse(self.host).path[1:]][collection]
+            collection = self.connection[urlparse(
+                self.host).path[1:]][collection]
             collection.insert(items)
-            self.logger.info('Successfully inserted items: {0}'.format(str(items)))
+            self.logger.info(
+                'Successfully inserted items: {0}'.format(str(items)))
         except Exception as e:
             self.logger.exception('PyMongo database error: {0}'.format(str(e)))
             raise e
@@ -76,13 +84,16 @@ class MongoDBConnect(object):
             limit: integer of limit of items to retrieve, ie, 1000, 2000, etc.
         """
         try:
-            collection = self.connection[urlparse(self.host).path[1:]][collection]
-            items = collection.find().sort('datetime_add', 1).limit(limit) # oldest
-            self.logger.info('Successfully found items based on limit: {0}'.format(str(limit)))
+            collection = self.connection[urlparse(
+                self.host).path[1:]][collection]
+            items = collection.find().sort('datetime_add', 1).limit(limit)  # oldest
+            self.logger.info(
+                'Successfully found items based on limit: {0}'.format(str(limit)))
             return items
         except Exception as e:
             self.logger.exception('PyMongo database error: {0}'.format(str(e)))
             raise e
+
 
 class SQLAlchemyConnect(object):
     """
@@ -90,10 +101,12 @@ class SQLAlchemyConnect(object):
     Args:
         connection_string: The database connection string
     """
+
     def __init__(self, connection_string):
         self.connection_string = connection_string
         self.session = None
-        self.logger = Logger('log', self.__class__.__name__, maxbytes=10 * 1024 * 1024).get()
+        self.logger = Logger('log', self.__class__.__name__,
+                             maxbytes=10 * 1024 * 1024).get()
 
     def __enter__(self):
         self.engine = create_engine(self.connection_string)
@@ -114,7 +127,8 @@ class SQLAlchemyConnect(object):
         """
         try:
             metadata = MetaData(bind=self.engine, reflect=True)
-            active_table = Table(table, metadata, autoload=True, autoload_with=self.engine)
+            active_table = Table(
+                table, metadata, autoload=True, autoload_with=self.engine)
             cursor_results = self.session.execute("""
                 SELECT DISTINCT event_no FROM {0};
                 """.format(active_table))
@@ -123,7 +137,8 @@ class SQLAlchemyConnect(object):
                 exist_events.append(row['event_no'])
             return exist_events
         except Exception as e:
-            self.logger.exception('SQLAlchemy database error: {0}'.format(str(e)))
+            self.logger.exception(
+                'SQLAlchemy database error: {0}'.format(str(e)))
             raise e
 
     def insert_bulk(self, table, items):
@@ -135,12 +150,15 @@ class SQLAlchemyConnect(object):
         """
         try:
             metadata = MetaData(bind=self.engine, reflect=True)
-            active_table = Table(table, metadata, autoload=True, autoload_with=self.engine)
+            active_table = Table(
+                table, metadata, autoload=True, autoload_with=self.engine)
             self.session.execute(active_table.insert(), items)
-            self.session.commit() # commit transaction
-            self.logger.info('Successfully inserted items: {0} into table: {1}'.format(str(items), active_table))
+            self.session.commit()  # commit transaction
+            self.logger.info('Successfully inserted items: {0} into table: {1}'.format(
+                str(items), active_table))
         except Exception as e:
-            self.logger.exception('SQLAlchemy database error: {0}'.format(str(e)))
+            self.logger.exception(
+                'SQLAlchemy database error: {0}'.format(str(e)))
             raise e
 
     def get_all(self, table):
@@ -151,10 +169,13 @@ class SQLAlchemyConnect(object):
         """
         try:
             metadata = MetaData(bind=self.engine, reflect=True)
-            active_table = Table(table, metadata, autoload=True, autoload_with=self.engine)
+            active_table = Table(
+                table, metadata, autoload=True, autoload_with=self.engine)
             items = self.session.query(active_table).all()
-            self.logger.info('Successfully retrieved selected items: {0} from table: {1}'.format(str(items), active_table))
+            self.logger.info('Successfully retrieved selected items: {0} from table: {1}'.format(
+                str(items), active_table))
             return items
         except Exception as e:
-            self.logger.exception('SQLAlchemy database error: {0}'.format(str(e)))
+            self.logger.exception(
+                'SQLAlchemy database error: {0}'.format(str(e)))
             raise e

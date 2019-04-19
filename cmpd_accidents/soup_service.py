@@ -3,6 +3,7 @@ Module for parsing XML/HTML
 """
 from bs4 import BeautifulSoup
 
+
 class SoupService(object):
     """
     Soup/Parser service for XML/HTML
@@ -10,6 +11,7 @@ class SoupService(object):
         text: the text to parse
         parse_type: parser type (XML, HTML, etc.) for bs4
     """
+
     def __init__(self, text, parse_type):
         self.soup = BeautifulSoup(text, parse_type)
 
@@ -21,7 +23,7 @@ class SoupService(object):
         """
         tags = self.soup.findAll(tag)
         return tags
-    
+
     def get_text(self, tag):
         """
         Get text representation of item total from soup parse

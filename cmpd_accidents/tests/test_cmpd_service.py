@@ -2,6 +2,7 @@ from unittest import TestCase
 from unittest.mock import patch
 import cmpd_accidents
 
+
 class TestCMPDService(TestCase):
     """ CMPD Service integration tests """
     @classmethod
@@ -18,9 +19,10 @@ class TestCMPDService(TestCase):
         weather = cmpd_accidents.WeatherService(
             endpoint='https://samples.openweathermap.org/data/2.5/weather',
             apiKey='b6907d289e10d714a6e88b30761fae22'
-            ) # fake API key via OpenWeatherAPI
+        )  # fake API key via OpenWeatherAPI
         # CMPD
-        self.mock_cmpd = cmpd_accidents.CMPDService(mock_db, mock_soap, weather)
+        self.mock_cmpd = cmpd_accidents.CMPDService(
+            mock_db, mock_soap, weather)
 
     def test_cmpd_service_init(self):
         self.assertTrue(hasattr(self.mock_cmpd, 'database'))
@@ -44,7 +46,7 @@ class TestCMPDService(TestCase):
         weather = cmpd_accidents.WeatherService(
             endpoint='https://samples.openweathermap.org/data/2.5/weather',
             apiKey='b6907d289e10d714a6e88b30761fae22'
-            ) # fake API key via OpenWeatherAPI
+        )  # fake API key via OpenWeatherAPI
         # CMPD
         mock_cmpd = cmpd_accidents.CMPDService(mock_db, mock_soap, weather)
         self.assertTrue(hasattr(mock_cmpd, "update_traffic_data"))

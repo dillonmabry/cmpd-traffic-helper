@@ -3,6 +3,7 @@ Module for SOAP interface
 """
 from cmpd_accidents import RestService
 
+
 class SoapService(object):
     """
     Class for SOAP operations
@@ -11,6 +12,7 @@ class SoapService(object):
         body: The web service descriptor
         headers: headers to send
     """
+
     def __init__(self, wsdl, body, headers):
         self.body = body
         self.headers = headers
