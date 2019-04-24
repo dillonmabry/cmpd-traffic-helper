@@ -3,21 +3,25 @@ Module for ML Model types and wrapper for operations
 Included: XGBoost, RandomForest (ensemble)
 """
 from xgboost.sklearn import XGBClassifier
+from xgboost import plot_importance
+from matplotlib import pyplot
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.impute import SimpleImputer
 from traffic_analyzer import ColumnExtractor
 from sklearn.model_selection import GridSearchCV
+from sklearn.feature_selection import SelectKBest, f_classif, VarianceThreshold
 
 
-class XGModel(object):
+class XGBModel(object):
     """
     XGBoost wrapper class 
     https://xgboost.readthedocs.io/en/latest/python/python_api.html
     """
 
-    def __init__(self):
+    def __init__(self, feature_names):
         self.model = None
+        self.feature_names = feature_names
 
     def train_grid(self, X, y, X_numeric, X_categorical, cv=10):
         """
@@ -41,22 +45,25 @@ class XGModel(object):
                     ('onehot', OneHotEncoder(handle_unknown='ignore')),
                 ])),
             ])),
-            ('clf', XGBClassifier())  # Boosted trees classifier
+            ('clf', XGBClassifier(nthread=16))  # Boosted trees classifier
         ])
-        pipeline.fit(X, y)
+        """
+        https://xgboost.readthedocs.io/en/latest/parameter.html
+        """
         params = {  # Params to be defined based on testing
-            'clf__max_depth': [5, 10, 15, 20],
-            'clf__learning_rate': [0.001, 0.01, 0.1],
-            'clf__n_estimators': [100, 1000],
-            'clf__min_child_weight': [1, 5, 10],
+            'clf__max_depth': [3, 5, 10],
+            'clf__learning_rate': [0.005, 0.01, 0.05, 0.5],
+            'clf__n_estimators': [100, 1000, 3000],
+            'clf__min_child_weight': [1, 3, 5],
             'clf__colsample_bytree': [0.8],
             'clf__colsample_bylevel': [0.8]
         }
         gridsearch = GridSearchCV(
             estimator=pipeline,
             param_grid=params,
-            scoring='f1',  # F1 scoring for imbalanced data
-            cv=cv
+            scoring='roc_auc',  # F1 scoring for imbalanced data
+            cv=cv,
+            n_jobs=4  # Allow parallel
         )
         gridsearch.fit(X, y)
         self.model = gridsearch
@@ -70,6 +77,14 @@ class XGModel(object):
         """
         predictions = self.model.predict(observations)
         return list(zip(observations, predictions))
+
+    @staticmethod
+    def plot_model_importance(model):
+        """
+        Plot model importance
+        """
+        plot_importance(model)
+        pyplot.show()
 
 
 class RFModel(object):

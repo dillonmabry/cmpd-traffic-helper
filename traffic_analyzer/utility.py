@@ -14,10 +14,12 @@ def load_model(filename):
         filename: the file name of the .pkl model
     Returns model loaded
     """
-    model_path = pkg_resources.resource_filename('traffic_analyzer', 'models/')
+    model_path = pkg_resources.resource_filename('traffic_analyzer', 'resources/models/')
     with (open(model_path + filename, "rb")) as f:
         try:
             return joblib.load(f)
+        except FileNotFoundError:
+            print("Model not found in model resources directory")
         except Exception as e:
             raise e
 
@@ -42,7 +44,7 @@ def load_csv(filename):
     Returns Pandas dataframe from csv
     """
     file_path = pkg_resources.resource_filename(
-        'traffic_analyzer', 'resources/')
+        'traffic_analyzer', 'resources/reference_data/')
     with (open(file_path + filename, "rb")) as f:
         try:
             return pd.read_csv(f)

@@ -2,19 +2,21 @@
 Main module for traffic analysis, predictions, API
 """
 import argparse
-from traffic_analyzer import XGModel
+from traffic_analyzer import XGBModel
 from traffic_analyzer import create_train_test_data
+from traffic_analyzer import dump_model
+from traffic_analyzer import load_model, load_csv
 
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, average_precision_score, roc_auc_score
 
 
-def create_xg_model(trainset, labels, numeric, categorical):
+def create_xg_model(trainset, labels, numeric, categorical, feature_names):
     """
     Args:
         model_type: Type of model to train: xgb/rf
     Returns XGBoost trained model
     """
-    model = XGModel()
+    model = XGBModel(feature_names)
     model.train_grid(trainset, labels, numeric, categorical)
     return model
 
@@ -39,36 +41,50 @@ def main():
     if 'model_type' in args:  # Select model type
         if args.model_type == 'xgb':
             models = []
-            for i in range(0, 5):
-                X_train, y_train, X_test, y_test = create_train_test_data(
-                    host=args.host, port=args.port, imbalance_multiplier=3, test_size=0.1)
+            # Re-run for iterations to train best CV model
+            for i in range(0, 1):
+                X_train, y_train, X_test, y_test, feature_names = create_train_test_data(
+                    datasize=5000, host=args.host, port=args.port, imbalance_multiplier=3, test_size=0.1)
                 model = create_xg_model(
                     trainset=X_train,
                     labels=y_train,
-                    numeric=(10, 16, 17, 18, 20, 24, 26, 30, 31, 33,
-                            37, 46, 47, 48), # assign numeric columns based on final dataset
-                    categorical=(3, 40, 41, 42, 44, 45, 49, 50) # assign categorical columns based on final dataset
+                    # pipeline numeric indexes
+                    numeric=(1, 2, 3, 4, 5, 17, 18, 19, 20),
+                    # pipeline categorical indexes
+                    categorical=(6, 7, 8, 9, 10, 11, 12,
+                                 13, 14, 15, 16, 21, 22),
+                    feature_names=feature_names
                 )
                 preds = model.predict(X_test)
                 predictions = [pred[1] for pred in preds]
-                score = f1_score(y_test, predictions)
-                print('Iter: {0}, Score: {1}'.format(i, score))
-                models.append({ model: model, f1_score: score })
-            best_model = max(models, key=lambda model:model['f1_score'])
-            print('Best model score: {0}'.format(best_model.f1_score))
+                _score_f1 = f1_score(y_test, predictions)
+                _score_average_prec = average_precision_score(y_test, predictions)
+                _score_auc_ = roc_auc_score(y_test, predictions)
+                print('Iter: {0}, F1 Score: {1}'.format(i, _score_f1))
+                models.append({'model': model, 
+                               'f1_score': _score_auc_,
+                               'average_score': _score_average_prec, 
+                               'auc_score': _score_auc_})
+ 
+            best_model = max(models, key=lambda model: model['f1_score'])
+            model_name = "xgb_cv_optimal.joblib"
+            dump_model(best_model['model'], model_name)
+            bst = best_model['model']
+            print('Best estimator params: {0}'.format(bst.model.best_params_))
+            mapper = {'f{0}'.format(i): v for i,
+                      v in enumerate(bst.feature_names)}
+            mapped = {mapper.get(
+                k, None): v for k, v in bst.model.best_estimator_.named_steps["clf"].get_booster().get_fscore().items()}
+            print('Best model f1 score: {0}'.format(best_model['f1_score']))
+            print('Best model avg precision score: {0}'.format(best_model['average_score']))
+            print('Best model auc score: {0}'.format(best_model['auc_score']))
+            XGBModel.plot_model_importance(mapped)
         else:
             print('RF')
     else:  # Existing model
-        return None
-
-    # Predicting setup
-    #parser.add_argument('predict',
-    #    help='Enter the csv file of the observations/test data to predict'
-    #)
-    # preds = model.predict(load_csv('./predictions'))
-    # predictions = [pred[1] for pred in preds]
-    # accuracy = accuracy_score(y_test, predictions)
-    # print(accuracy)
+        model = load_model(args.model)
+        print('Model information: {0}'.format(model.model.best_estimator_.named_steps["clf"]))
+        XGBModel.plot_model_importance(model.model.best_estimator_.named_steps["clf"])
 
 
 if __name__ == '__main__':
