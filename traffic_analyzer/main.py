@@ -7,7 +7,8 @@ from traffic_analyzer import create_train_test_data
 from traffic_analyzer import dump_model
 from traffic_analyzer import load_model, load_csv
 
-from sklearn.metrics import f1_score, average_precision_score, roc_auc_score
+from sklearn.metrics import f1_score, average_precision_score, roc_auc_score, accuracy_score
+import time
 
 
 def create_xg_model(trainset, labels, numeric, categorical, feature_names):
@@ -41,8 +42,9 @@ def main():
     if 'model_type' in args:  # Select model type
         if args.model_type == 'xgb':
             models = []
+            start = time.time()
             # Re-run for iterations to train best CV model
-            for i in range(0, 1):
+            for i in range(0, 3):
                 X_train, y_train, X_test, y_test, feature_names = create_train_test_data(
                     datasize=5000, host=args.host, port=args.port, imbalance_multiplier=3, test_size=0.1)
                 model = create_xg_model(
@@ -51,7 +53,7 @@ def main():
                     # pipeline numeric indexes
                     numeric=(1, 2, 3, 4, 5, 17, 18, 19, 20),
                     # pipeline categorical indexes
-                    categorical=(6, 7, 8, 9, 10, 11, 12,
+                    categorical=(0, 6, 7, 8, 9, 10, 11, 12,
                                  13, 14, 15, 16, 21, 22),
                     feature_names=feature_names
                 )
@@ -60,11 +62,14 @@ def main():
                 _score_f1 = f1_score(y_test, predictions)
                 _score_average_prec = average_precision_score(y_test, predictions)
                 _score_auc_ = roc_auc_score(y_test, predictions)
+                _score_accuracy = accuracy_score(y_test, predictions)
                 print('Iter: {0}, F1 Score: {1}'.format(i, _score_f1))
+                confusion_matrix(y_test, predictions)
                 models.append({'model': model, 
-                               'f1_score': _score_auc_,
+                               'f1_score': _score_f1,
                                'average_score': _score_average_prec, 
-                               'auc_score': _score_auc_})
+                               'auc_score': _score_auc_,
+                               'accuracy_score': _score_accuracy})
  
             best_model = max(models, key=lambda model: model['f1_score'])
             model_name = "xgb_cv_optimal.joblib"
@@ -78,6 +83,9 @@ def main():
             print('Best model f1 score: {0}'.format(best_model['f1_score']))
             print('Best model avg precision score: {0}'.format(best_model['average_score']))
             print('Best model auc score: {0}'.format(best_model['auc_score']))
+            print('Best model accuracy score: {0}'.format(best_model['accuracy_score']))
+            end = time.time()
+            print('End processing time: {0}'.format(end - start))
             XGBModel.plot_model_importance(mapped)
         else:
             print('RF')

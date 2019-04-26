@@ -45,15 +45,15 @@ class XGBModel(object):
                     ('onehot', OneHotEncoder(handle_unknown='ignore')),
                 ])),
             ])),
-            ('clf', XGBClassifier(nthread=16))  # Boosted trees classifier
+            ('clf', XGBClassifier())  # Boosted trees classifier
         ])
         """
         https://xgboost.readthedocs.io/en/latest/parameter.html
         """
         params = {  # Params to be defined based on testing
             'clf__max_depth': [3, 5, 10],
-            'clf__learning_rate': [0.005, 0.01, 0.05, 0.5],
-            'clf__n_estimators': [100, 1000, 3000],
+            'clf__learning_rate': [0.005, 0.05, 0.5],
+            'clf__n_estimators': [1000, 3000],
             'clf__min_child_weight': [1, 3, 5],
             'clf__colsample_bytree': [0.8],
             'clf__colsample_bylevel': [0.8]
@@ -61,9 +61,9 @@ class XGBModel(object):
         gridsearch = GridSearchCV(
             estimator=pipeline,
             param_grid=params,
-            scoring='roc_auc',  # F1 scoring for imbalanced data
+            scoring='f1',  # F1 scoring for imbalanced data
             cv=cv,
-            n_jobs=4  # Allow parallel
+            n_jobs=4 # Parallel
         )
         gridsearch.fit(X, y)
         self.model = gridsearch
