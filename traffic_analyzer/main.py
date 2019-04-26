@@ -64,7 +64,6 @@ def main():
                 _score_auc_ = roc_auc_score(y_test, predictions)
                 _score_accuracy = accuracy_score(y_test, predictions)
                 print('Iter: {0}, F1 Score: {1}'.format(i, _score_f1))
-                confusion_matrix(y_test, predictions)
                 models.append({'model': model, 
                                'f1_score': _score_f1,
                                'average_score': _score_average_prec, 
