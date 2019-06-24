@@ -76,17 +76,18 @@ class MongoDBConnect(object):
             self.logger.exception('PyMongo database error: {0}'.format(str(e)))
             raise e
 
-    def get_all(self, collection, limit):
+    def get_all(self, collection, limit, order=1):
         """
         MongoDB get all items
         Args:
             collection: collection to get from
             limit: integer of limit of items to retrieve, ie, 1000, 2000, etc.
+            order: datetime sort: asc 1, desc -1
         """
         try:
             collection = self.connection[urlparse(
                 self.host).path[1:]][collection]
-            items = collection.find().sort('datetime_add', 1).limit(limit)  # oldest
+            items = collection.find().sort('datetime_add', order).limit(limit)  # oldest
             self.logger.info(
                 'Successfully found items based on limit: {0}'.format(str(limit)))
             return items

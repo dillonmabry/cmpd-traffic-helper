@@ -38,10 +38,8 @@ class TestCMPDService(TestCase):
         body = """<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><CMPDAccidents xmlns="http://maps.cmpd.org/" /></soap:Body></soap:Envelope>"""
         headers = {'Content-Type': 'text/xml', 'accept': 'application/xml'}
         mock_soap = cmpd_accidents.SoapService(wsdl, body, headers)
-        print(mock_soap)
         # DB
         mock_db = cmpd_accidents.MongoDBConnect("localhost", 27017)
-        print(mock_db)
         # Weather
         weather = cmpd_accidents.WeatherService(
             endpoint='https://samples.openweathermap.org/data/2.5/weather',

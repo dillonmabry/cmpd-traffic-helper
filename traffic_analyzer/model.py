@@ -8,9 +8,11 @@ from matplotlib import pyplot
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.impute import SimpleImputer
-from traffic_analyzer import ColumnExtractor
+from sklearn.decomposition import PCA
 from sklearn.model_selection import GridSearchCV
-from sklearn.feature_selection import SelectKBest, f_classif, VarianceThreshold
+
+from traffic_analyzer import ColumnExtractor
+from traffic_analyzer import Logger
 
 
 class XGBModel(object):
@@ -22,6 +24,7 @@ class XGBModel(object):
     def __init__(self, feature_names):
         self.model = None
         self.feature_names = feature_names
+        self.logger = Logger(self.__class__.__name__).get()
 
     def train_grid(self, X, y, X_numeric, X_categorical, cv=10):
         """
@@ -38,7 +41,8 @@ class XGBModel(object):
                 ('continuous', Pipeline([
                     ('extract', ColumnExtractor(cols=X_numeric)),
                     ('impute', SimpleImputer()),
-                    ('scaler', StandardScaler())
+                    ('scaler', StandardScaler()),
+                    ('pca', PCA()),  # PCA
                 ])),
                 ('factors', Pipeline([
                     ('extract', ColumnExtractor(cols=X_categorical)),
@@ -47,23 +51,29 @@ class XGBModel(object):
             ])),
             ('clf', XGBClassifier())  # Boosted trees classifier
         ])
+        self.logger.info('Created XGB Pipeline with the following steps: {0}'.format(
+            pipeline.named_steps))
         """
         https://xgboost.readthedocs.io/en/latest/parameter.html
         """
         params = {  # Params to be defined based on testing
-            'clf__max_depth': [3, 5, 10],
-            'clf__learning_rate': [0.005, 0.05, 0.5],
-            'clf__n_estimators': [1000, 3000],
+            'clf__max_depth': [3, 5],
+            'clf__learning_rate': [0.005, 0.05],
+            'clf__n_estimators': [500],
             'clf__min_child_weight': [1, 3, 5],
-            'clf__colsample_bytree': [0.8],
-            'clf__colsample_bylevel': [0.8]
+            'clf__colsample_bytree': [0.7],
+            'clf__scale_pos_weight': [1],
+            'clf__reg_alpha': [0.0],
+            'clf__reg_lambda': [0.5],
+            'preproc__continuous__pca__n_components': [2, 4, 8]
         }
         gridsearch = GridSearchCV(
             estimator=pipeline,
             param_grid=params,
-            scoring='f1',  # F1 scoring for imbalanced data
+            scoring='recall',  # Imbalanced data, want to minimize type II errors
             cv=cv,
-            n_jobs=4 # Parallel
+            n_jobs=4,  # Parallel
+            verbose=10
         )
         gridsearch.fit(X, y)
         self.model = gridsearch

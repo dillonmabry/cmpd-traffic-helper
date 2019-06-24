@@ -12,7 +12,7 @@ import pandas as pd
 from pandas.io.json import json_normalize
 import re
 # Spatial features
-from shapely.geometry import Point, LineString
+from shapely.geometry import Point, LineString, Polygon
 # Sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
@@ -21,6 +21,9 @@ from sklearn.cluster import KMeans
 import random
 import itertools
 import datetime as datetime
+
+from traffic_analyzer import Logger
+_logger = Logger(__name__).get()
 
 
 def clean_data(data):
@@ -32,6 +35,7 @@ def clean_data(data):
         - Address, known issue with reporting via CMPD as "&" for error address
     """
     cleansed_data = data.fillna(data.mean())
+    _logger.info('Cleaned data... Filled NAs with mean values')
     return cleansed_data
 
 
@@ -86,7 +90,7 @@ def join_features(data):
     """
     # Load static features
     income = load_csv("census_income.csv")
-    pop = load_csv("census_population.csv")
+    population = load_csv("census_population.csv")
     roads = load_csv("roads.csv")
     signals = load_csv("signals.csv")
     traffic_vol = load_csv("traffic_volumes.csv")
@@ -123,6 +127,15 @@ def join_features(data):
         road_curves.append(curve)
     roads["curve"] = road_curves
 
+    polygons = []
+    # Load polygons from census information
+    for i, row in income.iterrows():
+        xs = [float(x) for x in row["coordinates"].split(',')[1::2]]
+        ys = [float(y) for y in row["coordinates"].split(',')[0::2]]
+        coords = zip(xs, ys)
+        polygon = Polygon(list(coords))
+        polygons.append(polygon)
+
     # Traffic info
     meck_vols = traffic_vol[(traffic_vol["COUNTY"] == "MECKLENBURG") & (
         traffic_vol["2016"] != ' ')][["ROUTE", "2016"]]
@@ -133,6 +146,7 @@ def join_features(data):
     mean_lengths = []
     signals_near = []
     road_names = []
+    # Process data
     for i, row in data.iterrows():
         first_word = find_first_word(row[features.get('address')])
         # Road information
@@ -170,10 +184,6 @@ def join_features(data):
     data[features.get('road_speed')] = data[features.get(
         'address')].apply(lambda x: extract_speed(x))
 
-    # TODO: Add census information to be joined spatially via accident coordinates
-    # Census info
-    census_info = pd.merge(income, pop, how="left", on=["coordinates"])
-
     # Clean data before further preprocessing
     cleansed_data = clean_data(data)
 
@@ -188,12 +198,19 @@ def join_features(data):
     cleansed_data[features.get('road_cluster')] = labels
 
     # Weather
-    cleansed_data[features.get('weatherCategory')] = cleansed_data[features.get('weather')].values.tolist()[0][0]['main']
-    cleansed_data[features.get('sunrise_hour')] = pd.DatetimeIndex(cleansed_data[features.get('sunrise')]).hour
-    cleansed_data[features.get('sunrise_minute')] = pd.DatetimeIndex(cleansed_data[features.get('sunrise')]).minute
-    cleansed_data[features.get('sunset_hour')] = pd.DatetimeIndex(cleansed_data[features.get('sunset')]).hour
-    cleansed_data[features.get('sunset_minute')] = pd.DatetimeIndex(cleansed_data[features.get('sunset')]).minute
+    cleansed_data[features.get('weatherCategory')] = cleansed_data[features.get(
+        'weather')].values.tolist()[0][0]['main']
+    cleansed_data[features.get('sunrise_hour')] = pd.DatetimeIndex(
+        cleansed_data[features.get('sunrise')]).hour
+    cleansed_data[features.get('sunrise_minute')] = pd.DatetimeIndex(
+        cleansed_data[features.get('sunrise')]).minute
+    cleansed_data[features.get('sunset_hour')] = pd.DatetimeIndex(
+        cleansed_data[features.get('sunset')]).hour
+    cleansed_data[features.get('sunset_minute')] = pd.DatetimeIndex(
+        cleansed_data[features.get('sunset')]).minute
 
+    _logger.info(
+        'Adding features... joined data features including spatial data')
     # Return finalized
     return cleansed_data
 
@@ -237,26 +254,26 @@ def generate_non_accidents(data, iterations):
                 non_accs.loc[i] = acc_rec
         non_accidents = non_accidents.append(non_accs, ignore_index=True)
 
-    print(
+    _logger.info(
         "Generated {0} non-accidents to go with {1} accidents".format(len(non_accidents), len(data)))
     return non_accidents
 
 
-def create_train_test_data(datasize, host, port, imbalance_multiplier, test_size):
+def get_accidents(datasize, host, port):
     """
     Args:
         datasize: number of positively identified items to generate
-        host: the host for the connection string of data
+        host: the host for the dataset (accidents)
         port: the port for the host
-        imbalance_multiplier: Multiplier of the non-accident size, default x3 non-accidents to accidents
-        test_size: test data size proportion
-    Returns train set and test sets with corresponding labels
+    Returns accidents dataset
     """
     # Get the accidents data
     database = MongoDBConnect(host, port)
     with database as db:
-        cursor = db.get_all(collection='accidents', limit=datasize)
+        cursor = db.get_all(collection='accidents',
+                            limit=datasize, order=1)  # asc
         db_accidents = json_normalize(list(cursor))  # flatten weather json
+    _logger.info('Getting data... Retrieved accident data from data source')
 
     # Set correct data types as necessary
     db_accidents[features.get('lat')] = pd.to_numeric(
@@ -272,45 +289,59 @@ def create_train_test_data(datasize, host, port, imbalance_multiplier, test_size
 
     # Append any joined information (new.street_name, new.speed_limit, pop_sq_mile, median_age)
     accidents = join_features(db_accidents)
+    return accidents
+
+
+def create_train_test_data(datasize, host, port, imbalance_multiplier, test_size):
+    """
+    Args:
+        datasize: number of positively identified items to generate
+        host: the host for the dataset (accidents)
+        port: the port for the host
+        imbalance_multiplier: Multiplier of the non-accident size, default x3 non-accidents to accidents
+        test_size: test data size proportion
+    Returns train set and test sets with corresponding labels
+    """
+    # Get actual accidents
+    accidents = get_accidents(datasize, host, port)
 
     # Create the oversampling of non-accidents
     non_accidents = generate_non_accidents(
         data=accidents,
         iterations=imbalance_multiplier
     )
+    # Identify accidents vs. non-accidents
     accidents[features.get('is_accident')] = 1
     non_accidents[features.get('is_accident')] = 0
 
-    # Join final training dataset (accidents with non-accidents)
+    # Join final training dataset (accidents with non-accidents) with key features
     trainset = pd.concat([accidents, non_accidents])
+    feature_cols = [features.get('division'),
+                    features.get('weatherTemp'),
+                    features.get('weatherRain3'),
+                    features.get('weatherSnow1'),
+                    features.get('weatherVisibility'),
+                    features.get('weatherWindSpeed'),
+                    features.get('sunrise_hour'),
+                    features.get('sunset_hour'),
+                    features.get('weatherCategory'),
+                    features.get('month'),
+                    features.get('hour'),
+                    features.get('day_of_week'),
+                    features.get('road_curve'),
+                    features.get('road_length'),
+                    features.get('road_volume'),
+                    features.get('signals_near'),
+                    features.get('road_speed'),
+                    features.get('road_cluster'),
+                    features.get('is_accident')]
     try:
-        #TODO: add population information
-        trainset = trainset[[features.get('division'),
-                             features.get('weatherTemp'),
-                             features.get('weatherRain3'),
-                             features.get('weatherSnow1'),
-                             features.get('weatherVisibility'),
-                             features.get('weatherWindSpeed'),
-                             features.get('sunrise_hour'),
-                             features.get('sunrise_minute'),
-                             features.get('sunset_hour'),
-                             features.get('sunset_minute'),
-                             features.get('weatherCategory'),
-                             features.get('month'),
-                             features.get('day'),
-                             features.get('hour'),
-                             features.get('minute'),
-                             features.get('day_of_week'),
-                             features.get('road'),
-                             features.get('road_curve'),
-                             features.get('road_length'),
-                             features.get('road_volume'),
-                             features.get('signals_near'),
-                             features.get('road_speed'),
-                             features.get('road_cluster'),
-                             features.get('is_accident')]]
+        trainset = trainset[feature_cols]
     except KeyError:
-        print('Feature key not found in dataset, check key mappings and/or dataset')
+        _logger.error(
+            'Feature key not found in dataset, adding missing features...')
+        trainset = trainset.reindex(columns=feature_cols)
+        pass
 
     # Return train set and final holdout set based on defined percent
     X = trainset.iloc[:, :-1].values
