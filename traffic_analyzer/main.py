@@ -2,7 +2,7 @@
 Main module for traffic analysis, predictions, API
 """
 import argparse
-from model import XGBModel
+from traffic_analyzer import XGBModel
 from traffic_analyzer import create_train_test_data
 from traffic_analyzer import dump_model
 from traffic_analyzer import load_model, load_csv
