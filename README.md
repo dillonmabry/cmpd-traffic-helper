@@ -24,9 +24,9 @@ Data used:
 - Live weather stats (OpenWeatherAPI)
 
 ## Install Instructions
-This project has 2 Python projects *traffic_analyzer* and *cmpd_accidents*
-cmpd_accidents is for persistence and storing accidents either as a callable script or through PyPI
-traffic_analyzer is for model creation/generation
+This project has 2 Python projects **traffic_analyzer** and **cmpd_accidents**:
+- cmpd_accidents is for persistence and storing accidents either as a callable script or through PyPI
+- traffic_analyzer is for model creation/generation
 
 ```
 pip install .
