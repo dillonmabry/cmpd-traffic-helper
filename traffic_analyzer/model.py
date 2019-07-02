@@ -2,15 +2,13 @@
 Module for ML Model types and wrapper for operations
 Included: XGBoost, RandomForest (ensemble)
 """
-from xgboost.sklearn import XGBClassifier
-from xgboost import plot_importance
+import xgboost as xgb
 from matplotlib import pyplot
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.impute import SimpleImputer
-from sklearn.decomposition import PCA
 from sklearn.model_selection import GridSearchCV
-
+from sklearn.decomposition import PCA
 from traffic_analyzer import ColumnExtractor
 from traffic_analyzer import Logger
 
@@ -21,12 +19,12 @@ class XGBModel(object):
     https://xgboost.readthedocs.io/en/latest/python/python_api.html
     """
 
-    def __init__(self, feature_names):
+    def __init__(self):
         self.model = None
-        self.feature_names = feature_names
         self.logger = Logger(self.__class__.__name__).get()
+        self.feature_names = None
 
-    def train_grid(self, X, y, X_numeric, X_categorical, cv=10):
+    def train_grid(self, X, y, X_numeric, X_categorical):
         """
         Trains hyperparameter grid
         Args:
@@ -34,7 +32,7 @@ class XGBModel(object):
             y: train labels
             X_numeric: The list of column indexes of the numeric features
             X_categorical: The list of column indexes of the categorical features
-            cv: cross-validations to perform
+            feature_names: The feature named representations
         """
         pipeline = Pipeline([
             ('preproc', FeatureUnion([
@@ -49,30 +47,30 @@ class XGBModel(object):
                     ('onehot', OneHotEncoder(handle_unknown='ignore')),
                 ])),
             ])),
-            ('clf', XGBClassifier())  # Boosted trees classifier
+            ('clf', xgb.XGBClassifier())  # Boosted trees classifier
         ])
         self.logger.info('Created XGB Pipeline with the following steps: {0}'.format(
             pipeline.named_steps))
         """
         https://xgboost.readthedocs.io/en/latest/parameter.html
         """
-        params = {  # Params to be defined based on testing
+        params = {
             'clf__max_depth': [3, 5],
             'clf__learning_rate': [0.005, 0.05],
             'clf__n_estimators': [500],
-            'clf__min_child_weight': [1, 3, 5],
-            'clf__colsample_bytree': [0.7],
+            'clf__min_child_weight': [3, 5],
+            'clf__colsample_bytree': [0.7, 0.8],
             'clf__scale_pos_weight': [1],
             'clf__reg_alpha': [0.0],
-            'clf__reg_lambda': [0.5],
+            'clf__reg_lambda': [0.5, 1.0],
             'preproc__continuous__pca__n_components': [2, 4, 8]
         }
         gridsearch = GridSearchCV(
             estimator=pipeline,
             param_grid=params,
             scoring='recall',  # Imbalanced data, want to minimize type II errors
-            cv=cv,
-            n_jobs=4,  # Parallel
+            cv=10,
+            n_jobs=4,  # Jobs for processing
             verbose=10
         )
         gridsearch.fit(X, y)
@@ -93,15 +91,5 @@ class XGBModel(object):
         """
         Plot model importance
         """
-        plot_importance(model)
+        xgb.plot_importance(model)
         pyplot.show()
-
-
-class RFModel(object):
-    """
-    RandomForest wrapper class 
-    https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
-    """
-
-    def __init__(self, model):
-        self.model = None

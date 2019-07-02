@@ -3,7 +3,7 @@ Module for helper functions
 """
 import pandas as pd
 import numpy as np
-from sklearn.externals import joblib
+from joblib import dump, load
 import pkg_resources
 
 
@@ -15,13 +15,12 @@ def load_model(filename):
     Returns model loaded
     """
     model_path = pkg_resources.resource_filename('traffic_analyzer', 'resources/models/')
-    with (open(model_path + filename, "rb")) as f:
-        try:
-            return joblib.load(f)
-        except FileNotFoundError:
-            print("Model not found in model resources directory")
-        except Exception as e:
-            raise e
+    try:
+        return load(model_path + filename)
+    except FileNotFoundError:
+        print("Model not found in model resources/models directory")
+    except Exception as e:
+        raise e
 
 
 def dump_model(model, model_name):
@@ -31,7 +30,7 @@ def dump_model(model, model_name):
     Dumps model for use
     """
     try:
-        joblib.dump(model, model_name)
+        dump(model, model_name)
     except Exception as e:
         raise e
 

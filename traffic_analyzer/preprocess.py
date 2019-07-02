@@ -63,7 +63,7 @@ def extract_speed(address):
     """
     Generate generic speed limits for known roads
     Args:
-        road_type: the road to analyze
+        address: the address/road to analyze
     """
     if "HY" in address or "FR" in address:  # Highways/freeways
         return 70
@@ -234,7 +234,6 @@ def generate_non_accidents(data, iterations):
     feature_choice = random.choice(choices)
     cols = data.columns.tolist()
     non_accidents = pd.DataFrame(columns=cols)
-    data_matrix = data.as_matrix().tolist()
     for _ in itertools.repeat(None, iterations):
         non_accs = pd.DataFrame(columns=cols)
         for i, row in data.iterrows():
@@ -248,7 +247,9 @@ def generate_non_accidents(data, iterations):
             else:
                 random_choice = np.asscalar(np.random.choice(roads, 1))
                 acc_rec[feature_choice] = random_choice
-            if acc_rec.tolist() in data_matrix:
+            if ((data[features.get('day')] == acc_rec[features.get('day')]) &
+                (data[features.get('hour')] == acc_rec[features.get('hour')]) &
+                    (data[features.get('road')] == acc_rec[features.get('road')])).any():
                 continue
             else:
                 non_accs.loc[i] = acc_rec
@@ -298,9 +299,9 @@ def create_train_test_data(datasize, host, port, imbalance_multiplier, test_size
         datasize: number of positively identified items to generate
         host: the host for the dataset (accidents)
         port: the port for the host
-        imbalance_multiplier: Multiplier of the non-accident size, default x3 non-accidents to accidents
+        imbalance_multiplier: Multiplier of the non-accident size
         test_size: test data size proportion
-    Returns train set and test sets with corresponding labels
+    Returns train, test, and feature names
     """
     # Get actual accidents
     accidents = get_accidents(datasize, host, port)
