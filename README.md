@@ -10,26 +10,36 @@ CMPD Traffic Alerts service for persistence data and also any predictions/model 
 ## Goals of Project
 - Identify areas of improvement in Charlotte traffic flow
 - Identify problems areas, specific roads needing attention
-- Identify likelihood/chances of accidents based on certain conditions
-- Provide data for accident/feature correlation/relationships
-- Any other uses needed
+- Identify least likelihood route from point A to point B of having an accident
+- Provide a web based area to allow suggested routing to minimize likelihood of an accident
 
 APIs used:
 - Charlotte Mecklenburg Near-real time accident feeds http://maps.cmpd.org/trafficaccidents/default.aspx
 - OpenWeatherAPI weather location information https://openweathermap.org/api
 
 Data used:
-- NC-DOT ARC GIS
-- Charlotte Open Data Portal
+- CMPD Traffic Accidents (Accident information)
+- NC-DOT ARC GIS (Road features)
+- Charlotte Open Data Portal (Traffic volumes, population, traffic signals, spatial features)
+- Live weather stats (OpenWeatherAPI)
 
 ## Install Instructions
+This project has 2 Python projects **traffic_analyzer** and **cmpd_accidents**:
+- cmpd_accidents is for persistence and storing accidents either as a callable script or through PyPI
+- traffic_analyzer is for model creation/generation
+
 ```
 pip install .
 ```
-TODO* Push to PyPI/setup Travis CI once pre-release stable build finished
 
 ## How to Use
-Current usage (requires API key for OpenWeatherAPI and persistence storage information, table/collection defaults as "accidents"):
+Current usage:
+1. Setup persistence for storing data (MongoDB or MySQL currently supported)
+2. Setup database or collections as "accidents"
+3. Setup OpenWeatherAPI account and API key
+That's it! All other data is stored as reference data from the latest census information via Charlotte NC
+
+To check for current accidents and store them in your persistence:
 ```
 import cmpd_accidents as cmpd
 cmpd.update_traffic_data(<MongoDB host>, <MongoDB port>, <OpenWeather api key>) 
@@ -52,9 +62,9 @@ crontab -e
 */5 * * * * cd <your-repo-location>/cmpd_accidents && sudo python3 main.py mongodb://<user>:<password>@<host>/<databasename> <port> <OpenWeather api key>
 ```
 ## Note on Persistence
-If you would rather use a relational persistence such as MySQL, the interface is already available for SQLAlchemy connect via the database module. Simply replace the "collection" argument with "table" for relational persistence. Seed scripts are available in resources/db feel free to replace with what table definitions you prefer.
+If you would rather use a relational persistence such as MySQL, the interface is already available for SQLAlchemy connect via the database module. Simply replace the "collection" argument with "table" for relational persistence. Seed scripts are available in resources/db feel free to replace with what table columns you prefer.
 
-Class Examples:
+Persistence swap example:
 
 Relational
 ```
@@ -86,16 +96,12 @@ python setup.py test
 - [X] Setup Travis CI integration
 - [X] Exploratory Data Analysis
 - [X] Analyze existing traffic prediction models and develop mock model
+- [ ] Test mock model and provide detailed transparency
 - [ ] Utilize created model to provide insight for current traffic patterns and information
+- [ ] Create Python web service via hosting solution to call mock model and integrate with web portal
 - [ ] Finalize and push Python package to PyPI
 - [ ] Fix any new bugs
 - [ ] Create web based portal with interactivity
 
-## Exploratory Analysis
-
-Based on sample size of over 3000 accidents in the Charlotte-Mecklenburg area from mid November to early December 2018
-
-R Notebook: https://dillonmabry.github.io/cmpd-accidents-analysis/
-
-## Model Generation
-Python: ~To-be-added: model generation with utility
+## Related R Notebook
+This project was initially created via R and converted as best as possible to Python/Sklearn after decision to use Python to support model calling would be easier via web
