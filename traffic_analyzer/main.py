@@ -7,7 +7,6 @@ from traffic_analyzer import create_train_test_data
 from traffic_analyzer import load_model, dump_model, load_csv
 
 from sklearn.metrics import f1_score, average_precision_score, roc_auc_score, accuracy_score, recall_score
-from numpy import array as nparray
 import pandas as pd
 
 
