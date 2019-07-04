@@ -28,8 +28,13 @@ This project has 2 Python projects **traffic_analyzer** and **cmpd_accidents**:
 - cmpd_accidents is for persistence and storing accidents either as a callable script or through PyPI
 - traffic_analyzer is for model creation/generation
 
+Install locally:
 ```
 pip install .
+```
+Install via PyPI:
+```
+pip install charlotte-traffic-analysis
 ```
 
 ## How to Use

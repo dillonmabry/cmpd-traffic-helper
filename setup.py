@@ -1,9 +1,18 @@
 from setuptools import setup
 
+
+def readme():
+      with open('README.md') as f:
+            return f.read()
+
+
 setup(name='charlotte_traffic_analysis',
-      version='0.1.2',
+      version='0.1.3',
       description='Charlotte-metro traffic analysis helper including predictions, travel paths, and more',
+      long_description=readme(),
+      long_description_content_type='text/markdown',
       author='Dillon Mabry',
+      url='https://github.com/dillonmabry/cmpd-traffic-helper',
       author_email='rapid.dev.solutions@gmail.com',
       license='MIT',
       packages=['cmpd_accidents', 'traffic_analyzer'],
