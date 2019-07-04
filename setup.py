@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='charlotte_traffic_analysis',
-      version='0.1.1',
+      version='0.1.2',
       description='Charlotte-metro traffic analysis helper including predictions, travel paths, and more',
       author='Dillon Mabry',
       author_email='rapid.dev.solutions@gmail.com',
