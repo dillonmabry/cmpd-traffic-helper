@@ -93,3 +93,19 @@ class XGBModel(object):
         """
         xgb.plot_importance(model)
         pyplot.show()
+
+    @staticmethod
+    def plot_model_features(model, feature_names):
+        """
+        Plot various model interpretations
+        """
+        mapper = {'f{0}'.format(i): v for i,
+                  v in enumerate(feature_names)}
+        # Overall importance
+        mapped = {mapper.get(
+            k, None): v for k, v in model.model.best_estimator_.named_steps["clf"].get_booster().get_fscore().items()}
+        XGBModel.plot_model_importance(mapped)
+        # Gain
+        mapped_gain = {mapper.get(
+            k, None): v for k, v in model.model.best_estimator_.named_steps["clf"].get_booster().get_score(importance_type='gain').items()}
+        XGBModel.plot_model_importance(mapped_gain)

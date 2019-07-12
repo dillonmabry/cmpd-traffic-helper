@@ -14,13 +14,11 @@ def load_model(filename):
         filename: the file name of the .pkl model
     Returns model loaded
     """
-    model_path = pkg_resources.resource_filename('traffic_analyzer', 'resources/models/')
     try:
+        model_path = pkg_resources.resource_filename('traffic_analyzer', 'resources/models/')
         return load(model_path + filename)
-    except FileNotFoundError:
-        print("Model not found in model resources/models directory")
-    except Exception as e:
-        raise e
+    except Exception :
+        raise
 
 
 def dump_model(model, model_name):
@@ -30,9 +28,10 @@ def dump_model(model, model_name):
     Dumps model for use
     """
     try:
-        dump(model, model_name)
-    except Exception as e:
-        raise e
+        model_path = 'resources/models/'
+        dump(model, model_path + model_name)
+    except Exception:
+        raise
 
 
 def load_csv(filename):
@@ -47,8 +46,8 @@ def load_csv(filename):
     with (open(file_path + filename, "rb")) as f:
         try:
             return pd.read_csv(f)
-        except Exception as e:
-            raise e
+        except Exception:
+            raise
 
 
 def haversine_np(lon1, lat1, lon2, lat2):

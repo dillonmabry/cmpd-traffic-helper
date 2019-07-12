@@ -30,6 +30,6 @@ setup(name='charlotte_traffic_analysis',
           'traffic_analyzer/resources/reference_data/roads.csv',
           'traffic_analyzer/resources/reference_data/signals.csv',
           'traffic_analyzer/resources/reference_data/traffic_volumes.csv',
-          'traffic_analyzer/resources/models/xgb_cv_optimal.joblib'
+          'traffic_analyzer/resources/models/xgb_cv_optimal_v1.joblib'
       ])],
       zip_safe=False)
