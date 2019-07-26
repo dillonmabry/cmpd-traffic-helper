@@ -1,5 +1,5 @@
-FROM nginx/1.17.2-alpine
+FROM nginx:1.17.2-alpine
 
-RUN rm /etc/nginx/sites-enabled/default
+RUN rm /etc/nginx/nginx.conf
 
-COPY sites-enabled/ /etc/nginx/sites-enabled
+COPY nginx.conf /etc/nginx/nginx.conf
