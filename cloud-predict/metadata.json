@@ -1,0 +1,264 @@
+{
+    "feature_columns": {
+      "col_00": {
+        "mapping": {
+          "28": 0, 
+          "AC": 1, 
+          "CENTRAL": 2, 
+          "CMPD1": 3, 
+          "DAVIDSON PD": 4, 
+          "EASTWAY": 5, 
+          "FREEDOM": 6, 
+          "HICKORY GROVE": 7, 
+          "HUNTERSVILLE PD": 8, 
+          "INDEPENDENCE": 9, 
+          "K9": 10, 
+          "METRO": 11, 
+          "NORTH": 12, 
+          "NORTH TRYON": 13, 
+          "PROVIDENCE": 14, 
+          "SOUTH": 15, 
+          "SPEV": 16, 
+          "SPEV1": 17, 
+          "STEELE CREEK": 18, 
+          "UNIVERSITY CITY": 19, 
+          "WESTOVER": 20
+        }, 
+        "mode": "CENTRAL", 
+        "num_category": 21, 
+        "treatment": "vocabulary", 
+        "type": "categorical"
+      }, 
+      "col_01": {
+        "statistics": {
+          "mean": 290.6131001555601, 
+          "variance": 103.28241482909505
+        }, 
+        "type": "numerical"
+      }, 
+      "col_02": {
+        "statistics": {
+          "mean": 1.1124900069334234, 
+          "variance": 0.003818451941504079
+        }, 
+        "type": "numerical"
+      }, 
+      "col_03": {
+        "statistics": {
+          "mean": 14058.61546768671, 
+          "variance": 16177320.51112538
+        }, 
+        "type": "numerical"
+      }, 
+      "col_04": {
+        "statistics": {
+          "mean": 2.798771703775868, 
+          "variance": 2.354567311189254
+        }, 
+        "type": "numerical"
+      }, 
+      "col_05": {
+        "mapping": {
+          "10": 2, 
+          "11": 3, 
+          "12": 4, 
+          "5": 0, 
+          "6": 1
+        }, 
+        "mode": "10", 
+        "num_category": 5, 
+        "treatment": "identity", 
+        "type": "categorical"
+      }, 
+      "col_06": {
+        "mapping": {
+          "1": 0, 
+          "11": 8, 
+          "12": 9, 
+          "2": 1, 
+          "3": 2, 
+          "4": 3, 
+          "5": 4, 
+          "6": 5, 
+          "7": 6, 
+          "8": 7
+        }, 
+        "mode": "12", 
+        "num_category": 10, 
+        "treatment": "identity", 
+        "type": "categorical"
+      }, 
+      "col_07": {
+        "mapping": {
+          "0": 0, 
+          "1": 1, 
+          "10": 10, 
+          "11": 11, 
+          "12": 12, 
+          "13": 13, 
+          "14": 14, 
+          "15": 15, 
+          "16": 16, 
+          "17": 17, 
+          "18": 18, 
+          "19": 19, 
+          "2": 2, 
+          "20": 20, 
+          "21": 21, 
+          "22": 22, 
+          "23": 23, 
+          "3": 3, 
+          "4": 4, 
+          "5": 5, 
+          "6": 6, 
+          "7": 7, 
+          "8": 8, 
+          "9": 9
+        }, 
+        "mode": "17", 
+        "num_category": 24, 
+        "treatment": "identity", 
+        "type": "categorical"
+      }, 
+      "col_08": {
+        "mapping": {
+          "0": 0, 
+          "1": 1, 
+          "2": 2, 
+          "3": 3, 
+          "4": 4, 
+          "5": 5, 
+          "6": 6
+        }, 
+        "mode": "4", 
+        "num_category": 7, 
+        "treatment": "identity", 
+        "type": "categorical"
+      }, 
+      "col_09": {
+        "statistics": {
+          "mean": 1.8916257129837685e-05, 
+          "variance": 7.051166115412204e-11
+        }, 
+        "type": "numerical"
+      }, 
+      "col_10": {
+        "statistics": {
+          "mean": 922.3091168030535, 
+          "variance": 499818.3626164423
+        }, 
+        "type": "numerical"
+      }, 
+      "col_11": {
+        "statistics": {
+          "mean": 21322.296711230483, 
+          "variance": 265378466.86927956
+        }, 
+        "type": "numerical"
+      }, 
+      "col_12": {
+        "mapping": {
+          "0": 0, 
+          "1": 1, 
+          "10": 10, 
+          "11": 11, 
+          "12": 12, 
+          "13": 13, 
+          "14": 14, 
+          "15": 15, 
+          "16": 16, 
+          "17": 17, 
+          "18": 18, 
+          "19": 19, 
+          "2": 2, 
+          "20": 20, 
+          "21": 21, 
+          "22": 22, 
+          "23": 23, 
+          "24": 24, 
+          "25": 25, 
+          "26": 26, 
+          "27": 27, 
+          "28": 28, 
+          "29": 29, 
+          "3": 3, 
+          "30": 30, 
+          "31": 31, 
+          "32": 32, 
+          "33": 33, 
+          "34": 34, 
+          "35": 35, 
+          "36": 36, 
+          "37": 37, 
+          "38": 38, 
+          "39": 39, 
+          "4": 4, 
+          "40": 40, 
+          "41": 41, 
+          "42": 42, 
+          "43": 43, 
+          "44": 44, 
+          "45": 45, 
+          "46": 46, 
+          "47": 47, 
+          "48": 48, 
+          "49": 49, 
+          "5": 5, 
+          "50": 50, 
+          "51": 51, 
+          "52": 52, 
+          "53": 53, 
+          "54": 54, 
+          "55": 55, 
+          "56": 56, 
+          "57": 57, 
+          "58": 58, 
+          "59": 59, 
+          "6": 6, 
+          "60": 60, 
+          "61": 61, 
+          "62": 62, 
+          "63": 63, 
+          "64": 64, 
+          "65": 65, 
+          "66": 66, 
+          "67": 67, 
+          "68": 68, 
+          "69": 69, 
+          "7": 7, 
+          "70": 70, 
+          "71": 71, 
+          "72": 72, 
+          "73": 73, 
+          "74": 74, 
+          "75": 75, 
+          "8": 8, 
+          "9": 9
+        }, 
+        "mode": "0", 
+        "num_category": 76, 
+        "treatment": "identity", 
+        "type": "categorical"
+      }, 
+      "col_13": {
+        "mapping": {
+          "35": 0, 
+          "45": 1, 
+          "70": 2
+        }, 
+        "mode": "45", 
+        "num_category": 3, 
+        "treatment": "identity", 
+        "type": "categorical"
+      }
+    }, 
+    "target_algorithm": "XGboost", 
+    "target_column": {
+      "mapping": {
+        "0": "0", 
+        "1": "1"
+      }, 
+      "num_category": 2, 
+      "type": "classification"
+    }
+  }

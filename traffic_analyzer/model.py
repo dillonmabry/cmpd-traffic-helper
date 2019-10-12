@@ -8,7 +8,6 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import GridSearchCV
-from sklearn.decomposition import PCA
 from traffic_analyzer import ColumnExtractor
 from traffic_analyzer import Logger
 
@@ -40,7 +39,6 @@ class XGBModel(object):
                     ('extract', ColumnExtractor(cols=X_numeric)),
                     ('impute', SimpleImputer()),
                     ('scaler', StandardScaler()),
-                    ('pca', PCA()),  # PCA
                 ])),
                 ('factors', Pipeline([
                     ('extract', ColumnExtractor(cols=X_categorical)),
@@ -63,12 +61,11 @@ class XGBModel(object):
             'clf__scale_pos_weight': [1],
             'clf__reg_alpha': [0.0],
             'clf__reg_lambda': [0.5, 1.0],
-            'preproc__continuous__pca__n_components': [2, 4, 8]
         }
         gridsearch = GridSearchCV(
             estimator=pipeline,
             param_grid=params,
-            scoring='recall',  # Imbalanced data, want to minimize type II errors
+            scoring='roc_auc',  # Imbalanced data, want to minimize type II errors
             cv=10,
             n_jobs=4,  # Jobs for processing
             verbose=10

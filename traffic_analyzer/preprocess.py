@@ -320,12 +320,9 @@ def create_train_test_data(datasize, host, port, imbalance_multiplier, test_size
     feature_cols = [features.get('division'),
                     features.get('weatherTemp'),
                     features.get('weatherRain3'),
-                    features.get('weatherSnow1'),
                     features.get('weatherVisibility'),
                     features.get('weatherWindSpeed'),
                     features.get('sunrise_hour'),
-                    features.get('sunset_hour'),
-                    features.get('weatherCategory'),
                     features.get('month'),
                     features.get('hour'),
                     features.get('day_of_week'),
@@ -334,7 +331,6 @@ def create_train_test_data(datasize, host, port, imbalance_multiplier, test_size
                     features.get('road_volume'),
                     features.get('signals_near'),
                     features.get('road_speed'),
-                    features.get('road_cluster'),
                     features.get('is_accident')]
     try:
         trainset = trainset[feature_cols]

@@ -107,3 +107,6 @@ venv.bak/
 log/
 cover/
 .vscode
+
+# Google Cloud
+google*.json

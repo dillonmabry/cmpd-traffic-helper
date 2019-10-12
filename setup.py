@@ -18,9 +18,10 @@ setup(name='charlotte_traffic_analysis',
       packages=['cmpd_accidents', 'traffic_analyzer'],
       test_suite='nose.collector',
       tests_require=['nose'],
+      # Shapely for Windows requires local pip install # https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely
       install_requires=['pymongo', 'requests', 'lxml', 'bs4', 'sqlalchemy',
                         'pymysql', 'numpy', 'pandas', 'scikit-learn', 'xgboost',
-                        'shapely', 'matplotlib'],
+                        'shapely', 'matplotlib', 'google-api-python-client'],
       include_package_data=True,
       data_files=[('', [
           'cmpd_accidents/resources/soap_descriptors/cmpd_soap_descriptor.xml',
