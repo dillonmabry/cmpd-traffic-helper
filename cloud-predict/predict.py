@@ -4,8 +4,22 @@
 """
 import argparse
 import json
+import pandas as pd
 import googleapiclient.discovery
 from instance_generator import CMLEPreProcessor
+
+
+def get_instances(file, target_column):
+    """Get instances from csv to predict
+    Args:
+        file: filename to get instances from csv
+        target_column: response column to exclude for predictions
+    Returns:
+        tuple: original test data numpy values, instances to predict with response column removed
+    """
+    data = pd.read_csv(file)
+    instances = data.drop([target_column], axis=1)
+    return data.values.tolist(), instances.values.tolist()
 
 
 def predict_json(project, model, instances, version=None):
@@ -25,7 +39,6 @@ def predict_json(project, model, instances, version=None):
     # GOOGLE_APPLICATION_CREDENTIALS=<path_to_service_account_file>
     service = googleapiclient.discovery.build('ml', 'v1')
     name = 'projects/{}/models/{}'.format(project, model)
-
     if version is not None:
         name += '/versions/{}'.format(version)
 
@@ -36,8 +49,36 @@ def predict_json(project, model, instances, version=None):
 
     if 'error' in response:
         raise RuntimeError(response['error'])
-
     return response['predictions']
+
+
+def predict_single(project, model, instance):
+    """
+    Predict single response
+    Args:
+        instance: string of values to predict response from
+    Returns:
+        Single output response float of probability
+    """
+    processed_instance = preprocessor.transform_string_instance(instance)
+    pred = predict_json(project, model, [processed_instance])
+    return pred
+
+
+def predict_bulk(project, model, instances):
+    """
+    Predict multiple responses from a list of lists
+    Args:
+        instances: numpy list of lists containing values to predict
+    Returns:
+        list of responses, floating point probabilities
+    """
+    prediction_data = []
+    for item in instances:
+        transformed_instance = preprocessor.transform_list_instance(item)
+        prediction_data.append(transformed_instance)
+    preds = predict_json(project, model, prediction_data)
+    return preds
 
 
 if __name__ == '__main__':
@@ -50,9 +91,12 @@ if __name__ == '__main__':
     parser.add_argument(
         'model', help='Enter the training datasize for the model')
     parser.add_argument(
-        'instance', help='Enter a single instance to predict in string format comma separated')
+        'file', help='Enter a test csv file with test data for predictions')
+    parser.add_argument(
+        'target', help='Enter the response column name')
     args = parser.parse_args()
+    
     preprocessor = CMLEPreProcessor()
-    processed_data = preprocessor.transform_string_instance(args.instance)
-    preds = predict_json(args.project, args.model, [processed_data])
-    print(preds)
+    test_data, instances = get_instances(args.file, args.target)
+    predictions = predict_bulk(args.project, args.model, instances)
+    print(predictions)
