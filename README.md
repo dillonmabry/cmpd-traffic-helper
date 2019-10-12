@@ -57,7 +57,7 @@ Setup cron job to run every 5 minutes:
 ## Predicting Accident Likelihood
 To run an existing model via Google Cloud AI navigate to **cloud_predict** and insert a sample prediction via command-separated features:
 ```
-python process_input.py <project> <model> <prediction_sample>
+export GOOGLE_APPLICATION_CREDENTIALS=google_client_credentials.json && python predict.py <project> <model> <test data path> <target column>
 ```
 
 ## Note on Persistence
