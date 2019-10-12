@@ -54,6 +54,12 @@ Setup cron job to run every 5 minutes:
 */5 * * * * cd <your-repo-location>/cmpd_accidents && sudo python3 main.py mongodb://<user>:<password>@<host>/<databasename> <port> <OpenWeather api key>
 ```
 
+## Predicting Accident Likelihood
+To run an existing model via Google Cloud AI navigate to **cloud_predict** and insert a sample prediction via command-separated features:
+```
+python process_input.py <project> <model> <prediction_sample>
+```
+
 ## Note on Persistence
 If you would rather use a relational persistence such as MySQL, the interface is already available for SQLAlchemy connect via the database module. Simply replace the "collection" argument with "table" for relational persistence. Seed scripts are available in resources/db feel free to replace with what table columns you prefer.
 
