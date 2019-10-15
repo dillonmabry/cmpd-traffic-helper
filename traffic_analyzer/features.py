@@ -61,8 +61,8 @@ feature_map = {
     "sunrise_minute": "new.sunrise_minute",
     "sunset_hour": "new.sunset_hour",
     "sunset_minute": "new.sunset_minute",
-    "pop_sq_mile": "PopSqMi",
-    "population_info": "new.population_info",
+    "pop_sq_mile": "new.pop_sq_mile",
+    "median_age": "new.median_age",
     "income": "Median_Household_Income",
     "med_income": "new.median_income",
     "is_accident": "is_accident"

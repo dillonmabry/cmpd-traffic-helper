@@ -107,6 +107,10 @@ venv.bak/
 log/
 cover/
 .vscode
+test.csv
+predicted.csv
+trainset*
+predictions*
 
 # Google Cloud
 google*.json

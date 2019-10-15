@@ -1,9 +1,8 @@
 """Google Cloud Online Prediction Requests
    Tests online prediction requests
-   Use local credentials.json file for cloud auth
+   Use local credentials.json file for cloud auth with GOOGLE_APPLICATION_CREDENTIALS env
 """
 import argparse
-import json
 import pandas as pd
 import googleapiclient.discovery
 from instance_generator import CMLEPreProcessor
@@ -15,11 +14,11 @@ def get_instances(file, target_column):
         file: filename to get instances from csv
         target_column: response column to exclude for predictions
     Returns:
-        tuple: original test data numpy values, instances to predict with response column removed
+        tuple: original test data (pandas), instances to predict with response column removed (list vals)
     """
     data = pd.read_csv(file)
     instances = data.drop([target_column], axis=1)
-    return data.values.tolist(), instances.values.tolist()
+    return data, instances.values.tolist()
 
 
 def predict_json(project, model, instances, version=None):
@@ -75,6 +74,9 @@ def predict_bulk(project, model, instances):
     """
     prediction_data = []
     for item in instances:
+        # Blank between two commas stands for missing data.
+        # Number stands for numerical data. Strings stand for categorical data.
+        # Example record: 'NORTH,220.972,1.112453125,14055.71495,1.51,12,11,20,6,0.1,2000.182337,100000,2,70'
         transformed_instance = preprocessor.transform_list_instance(item)
         prediction_data.append(transformed_instance)
     preds = predict_json(project, model, prediction_data)
@@ -82,9 +84,6 @@ def predict_bulk(project, model, instances):
 
 
 if __name__ == '__main__':
-    # Blank between two commas stands for missing data.
-    # Number stands for numerical data. Strings stand for categorical data.
-    # Example record: 'NORTH,220.972,1.112453125,14055.71495,1.51,12,11,20,6,0.1,2000.182337,100000,2,70'
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'project', help='Enter the Google project name')
@@ -93,10 +92,15 @@ if __name__ == '__main__':
     parser.add_argument(
         'file', help='Enter a test csv file with test data for predictions')
     parser.add_argument(
+        'output_file', help='Enter output file name'
+    )
+    parser.add_argument(
         'target', help='Enter the response column name')
     args = parser.parse_args()
-    
+
     preprocessor = CMLEPreProcessor()
-    test_data, instances = get_instances(args.file, args.target)
+    test_df, instances = get_instances(args.file, args.target)
+
     predictions = predict_bulk(args.project, args.model, instances)
-    print(predictions)
+    test_df['prediction'] = predictions
+    test_df.to_csv(args.output_file, index=False)

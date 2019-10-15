@@ -55,12 +55,13 @@ def train_model(size, host, port):
         port: the port of the database with data
     """
     X_train, y_train, X_test, y_test, feature_names = create_train_test_data(
-        datasize=size, host=host, port=port, imbalance_multiplier=1, test_size=0.2)
+        datasize=size, host=host, port=port, imbalance_multiplier=3, test_size=0.2)
     # Train model
     model = XGBModel()
     model.train_grid(X=X_train, y=y_train, X_numeric=(
-        1, 2, 3, 4, 5, 12, 13, 14, 15, 16), X_categorical=(0, 6, 7, 8, 9, 10, 11, 17))
-    return model.model  # Return gridsearch pipeline object
+        1, 2, 3, 4, 10, 11, 12, 13, 14, 15, 16), X_categorical=(0, 5, 6, 7, 8, 9))
+    validate_model(model, X_test, y_test, feature_names)
+    return model.model  # Return gridsearch pipeline instance rather than XGBModel instance
 
 
 if __name__ == '__main__':
@@ -74,6 +75,6 @@ if __name__ == '__main__':
     parser.add_argument(
         'port', help='Enter the db port to connect, for training data', type=int)
     args = parser.parse_args()
-    # Model train/dump
+
     model = train_model(args.size, args.host, args.port)
     dump_model(model, args.model_name)
