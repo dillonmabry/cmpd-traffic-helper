@@ -109,8 +109,10 @@ cover/
 .vscode
 test.csv
 predicted.csv
-trainset*
-predictions*
+trainset.csv
+predictions.csv
+dbscan.csv
+trainset_test.csv
 
 # Google Cloud
-google*.json
+*credentials.json

@@ -88,7 +88,7 @@ if __name__ == '__main__':
     parser.add_argument(
         'project', help='Enter the Google project name')
     parser.add_argument(
-        'model', help='Enter the training datasize for the model')
+        'model', help='Enter the model name')
     parser.add_argument(
         'file', help='Enter a test csv file with test data for predictions')
     parser.add_argument(

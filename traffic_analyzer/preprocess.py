@@ -47,6 +47,8 @@ def clean_data(data):
     _logger.info('Cleaned data... Filled NAs with mean values')
     return cleansed_data
 
+#TODO: Add more advanced imputation instead of determining from text alone
+
 
 def find_first_word(address):
     """
@@ -66,6 +68,8 @@ def find_first_word(address):
         return hw_word
     else:
         return first_word
+
+#TODO: Add more advanced imputation instead of determining from speed alone
 
 
 def extract_speed(address):
