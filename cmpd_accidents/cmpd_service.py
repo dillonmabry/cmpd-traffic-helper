@@ -30,11 +30,11 @@ class CMPDService(object):
 
         # Find existing events from persistence that match current event ids
         with self.database as db:
-            exist_events = db.find_ids(
-                collection="accidents", ids=current_ids, cursor_limit=500)
+            exist_ids = db.find_ids(
+                collection="accidentsv2", ids=current_ids, cursor_limit=500)
 
         # Get new accidents only
-        diffs = set(current_ids) - set(exist_events)
+        diffs = set(current_ids) - set(exist_ids)
         new_accidents = [item for item in current_accidents if any(
             diff in item.get('EventNo') for diff in diffs)]
 
@@ -50,6 +50,8 @@ class CMPDService(object):
                 # Weather API data to dictionary
                 json["weatherInfo"] = weather_details
                 final_data.append(json)
-            with self.database as db:
-                db.insert_bulk(collection="accidentsv2",
-                               items=final_data)  # persist data
+            #print(final_data)
+            if final_data:
+                with self.database as db:
+                    db.insert_bulk(collection="accidentsv2",
+                                   items=final_data)

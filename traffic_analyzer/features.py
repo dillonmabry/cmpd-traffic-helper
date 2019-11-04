@@ -1,5 +1,6 @@
 """
 Defined feature maps to actual feature names via dataset
+TODO: Update feature maps to new v2 API and keep legacy feature_map
 """
 feature_map = {
     "_id": "_id",
