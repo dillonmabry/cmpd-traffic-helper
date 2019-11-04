@@ -1,7 +1,6 @@
 """
 Module for CMPD Traffic business logic
 """
-from cmpd_accidents import SoupService
 
 
 class CMPDService(object):
@@ -9,44 +8,43 @@ class CMPDService(object):
     Business logic service for manipulating/getting new data
     Args:
         database: the database to interact with
-        soap_service: the soap interface to use
+        rest_service: the rest service to use with api endpoint
         weather_service: the OpenWeatherAPI service
     """
 
-    def __init__(self, database, soap_service, weather_service):
+    def __init__(self, database, rest_service, weather_service):
         self.database = database
-        self.soap_service = soap_service
+        self.rest_service = rest_service
         self.weather_service = weather_service
 
     def update_traffic_data(self):
         """
         Update the traffic data persistence
         """
-        # Get current events and event ids, parse via soup parser
-        soap_res = self.soap_service.post()
-        soup_service = SoupService(text=soap_res, parse_type='lxml')
-        current_accidents = soup_service.findAll('accidents')
-        current_ids = soup_service.get_text('event_no')
+        # Get current events and event ids
+        res = self.rest_service.get(
+            params={'Content-Type': 'application/json'})
+        res_data = res.json()
+        current_accidents = res_data
+        current_ids = [item.get('EventNo') for item in res_data]
 
         # Find existing events from persistence that match current event ids
         with self.database as db:
             exist_events = db.find_ids(
                 collection="accidents", ids=current_ids, cursor_limit=500)
 
-        # Get differences and new accidents soup objects from diff ids
+        # Get new accidents only
         diffs = set(current_ids) - set(exist_events)
         new_accidents = [item for item in current_accidents if any(
-            diff in item.get_text() for diff in diffs)]
+            diff in item.get('EventNo') for diff in diffs)]
 
-        # Cleanup bs4 tags convert to JSON to insert for cleaned data
         if new_accidents:
-            json_data = soup_service.get_json(new_accidents)
             final_data = []
-            for json in json_data:
+            for json in new_accidents:
                 weather_details = self.weather_service.get(
                     params={
-                        'lat': json.get('latitude'),
-                        'lon': json.get('longitude')
+                        'lat': json.get('Latitude'),
+                        'lon': json.get('Longitude')
                     }
                 )
                 # Weather API data to dictionary

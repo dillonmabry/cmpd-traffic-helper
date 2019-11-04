@@ -24,7 +24,6 @@ setup(name='charlotte_traffic_analysis',
                         'shapely', 'matplotlib', 'google-api-python-client'],
       include_package_data=True,
       data_files=[('', [
-          'cmpd_accidents/resources/soap_descriptors/cmpd_soap_descriptor.xml',
           'cmpd_accidents/resources/db/mysql_create_accidents.sql',
           'traffic_analyzer/resources/reference_data/census_population.csv',
           'traffic_analyzer/resources/reference_data/roads.csv',
