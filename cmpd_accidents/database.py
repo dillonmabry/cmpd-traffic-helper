@@ -49,11 +49,11 @@ class MongoDBConnect(object):
             exist_events = []
             collection = self.connection[urlparse(
                 self.host).path[1:]][collection]
-            cursor = collection.find({'event_no': {'$in': ids}}, {
-                                     'event_no': 1}).limit(cursor_limit)
+            cursor = collection.find({'EventNo': {'$in': ids}}, {
+                                     'EventNo': 1}).limit(cursor_limit)
             for doc in cursor:
-                if doc.get('event_no'):
-                    exist_events.append(doc.get('event_no'))
+                if doc.get('EventNo'):
+                    exist_events.append(doc.get('EventNo'))
             return exist_events
         except Exception as e:
             self.logger.exception('PyMongo database error: {0}'.format(str(e)))
@@ -131,11 +131,11 @@ class SQLAlchemyConnect(object):
             active_table = Table(
                 table, metadata, autoload=True, autoload_with=self.engine)
             cursor_results = self.session.execute("""
-                SELECT DISTINCT event_no FROM {0};
+                SELECT DISTINCT EventNo FROM {0};
                 """.format(active_table))
             exist_events = []
             for row in cursor_results:
-                exist_events.append(row['event_no'])
+                exist_events.append(row['EventNo'])
             return exist_events
         except Exception as e:
             self.logger.exception(

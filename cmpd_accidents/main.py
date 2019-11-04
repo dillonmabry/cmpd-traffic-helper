@@ -5,10 +5,9 @@ import argparse
 import pkg_resources
 import os
 from cmpd_accidents import MongoDBConnect
-from cmpd_accidents import SoapService
+from cmpd_accidents import RestService
 from cmpd_accidents import WeatherService
 from cmpd_accidents import CMPDService
-from cmpd_accidents import loadFileAsString
 
 
 def update_traffic_data(host, port, weatherApi):
@@ -21,31 +20,29 @@ def update_traffic_data(host, port, weatherApi):
     """
     # DB Service
     db = MongoDBConnect(host, port)
-    # SOAP Service
-    wsdl = 'http://maps.cmpd.org/datafeeds/gisservice.asmx?op=CMPDAccidents'
-    path = pkg_resources.resource_filename(
-        'cmpd_accidents', 'resources/soap_descriptors/')
-    body = loadFileAsString(path + 'cmpd_soap_descriptor.xml')
-    headers = {'Content-Type': 'text/xml', 'accept': 'application/xml'}
-    soap = SoapService(wsdl=wsdl, body=body, headers=headers)
+    # REST Service
+    endpoint = 'https://cmpdinfo.charlottenc.gov/api/v2/traffic'
+    service = RestService(endpoint)
     # Weather Service
     weather = WeatherService(
         endpoint='https://api.openweathermap.org/data/2.5/weather', apiKey=weatherApi)
     # CMPD Service
-    cmpd = CMPDService(db, soap, weather)
+    cmpd = CMPDService(db, service, weather)
     cmpd.update_traffic_data()
 
 
 def main():
     if os.getenv('HOST') and os.getenv('PORT') and os.getenv('WEATHER_API'):
         """ From Environment variables """
-        update_traffic_data(os.getenv('HOST'), int(os.getenv('PORT')), os.getenv('WEATHER_API'))
+        update_traffic_data(os.getenv('HOST'), int(
+            os.getenv('PORT')), os.getenv('WEATHER_API'))
     else:
         """ From Main argparse for command line """
         parser = argparse.ArgumentParser()
         parser.add_argument(
             'host', help='Enter the db host to connect, full connection string')
-        parser.add_argument('port', help='Enter the db port to connect', type=int)
+        parser.add_argument(
+            'port', help='Enter the db port to connect', type=int)
         parser.add_argument(
             'weatherApi', help='Enter OpenWeatherAPI key to use for weather info')
         args = parser.parse_args()

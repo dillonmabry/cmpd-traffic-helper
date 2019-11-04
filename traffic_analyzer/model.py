@@ -8,7 +8,6 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import GridSearchCV
-from sklearn.decomposition import PCA
 from traffic_analyzer import ColumnExtractor
 from traffic_analyzer import Logger
 
@@ -40,7 +39,6 @@ class XGBModel(object):
                     ('extract', ColumnExtractor(cols=X_numeric)),
                     ('impute', SimpleImputer()),
                     ('scaler', StandardScaler()),
-                    ('pca', PCA()),  # PCA
                 ])),
                 ('factors', Pipeline([
                     ('extract', ColumnExtractor(cols=X_categorical)),
@@ -55,20 +53,18 @@ class XGBModel(object):
         https://xgboost.readthedocs.io/en/latest/parameter.html
         """
         params = {
-            'clf__max_depth': [3, 5],
+            'clf__max_depth': [3, 5, 7],
             'clf__learning_rate': [0.005, 0.05],
-            'clf__n_estimators': [500],
+            'clf__n_estimators': [250, 500],
             'clf__min_child_weight': [3, 5],
-            'clf__colsample_bytree': [0.7, 0.8],
+            'clf__colsample_bytree': [0.7],
             'clf__scale_pos_weight': [1],
-            'clf__reg_alpha': [0.0],
-            'clf__reg_lambda': [0.5, 1.0],
-            'preproc__continuous__pca__n_components': [2, 4, 8]
+            'clf__reg_lambda': [0.0, 0.5],
         }
         gridsearch = GridSearchCV(
             estimator=pipeline,
             param_grid=params,
-            scoring='recall',  # Imbalanced data, want to minimize type II errors
+            scoring='recall',
             cv=10,
             n_jobs=4,  # Jobs for processing
             verbose=10
@@ -81,7 +77,7 @@ class XGBModel(object):
         Predicts class from list of observations
         Args:
             observations: list of observations with appropriate features processed
-        Returns list of tuples -> observa;tions tagged with prediction 0 vs. 1
+        Returns list of tuples -> observations tagged with prediction 0 vs. 1
         """
         predictions = self.model.predict(observations)
         return list(zip(observations, predictions))

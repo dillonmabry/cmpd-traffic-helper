@@ -2,9 +2,9 @@ include README.md
 include LICENSE
 include cmpd_accidents/resources/soap_descriptors/cmpd_soap_descriptor.xml
 include cmpd_accidents/resources/db/mysql_create_accidents.sql
-include traffic_analyzer/resources/reference_data/census_income.csv
 include traffic_analyzer/resources/reference_data/census_population.csv
 include traffic_analyzer/resources/reference_data/roads.csv
 include traffic_analyzer/resources/reference_data/signals.csv
 include traffic_analyzer/resources/reference_data/traffic_volumes.csv
 include traffic_analyzer/resources/models/xgb_cv_optimal_v1.joblib
+include traffic_analyzer/resources/models/xgb_cv_optimal_v2.joblib

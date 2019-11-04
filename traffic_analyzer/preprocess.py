@@ -1,5 +1,4 @@
-"""
-Util module to gather training data, create sampling sets, and preprocess data
+""" Util module to gather training data, create sampling sets, and preprocess data
 """
 # Modules
 from cmpd_accidents import MongoDBConnect
@@ -15,8 +14,6 @@ import re
 from shapely.geometry import Point, LineString, Polygon
 # Sklearn
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.cluster import KMeans
 # Base libs
 import random
 import itertools
@@ -24,6 +21,18 @@ import datetime as datetime
 
 from traffic_analyzer import Logger
 _logger = Logger(__name__).get()
+
+
+def load_reference_data():
+    """ Load reference data for other features
+    Returns:
+        Tuple of multiple reference datasets
+    """
+    population = load_csv("census_population.csv")
+    roads = load_csv("roads.csv")
+    signals = load_csv("signals.csv")
+    traffic_vol = load_csv("traffic_volumes.csv")
+    return population, roads, signals, traffic_vol
 
 
 def clean_data(data):
@@ -37,6 +46,8 @@ def clean_data(data):
     cleansed_data = data.fillna(data.mean())
     _logger.info('Cleaned data... Filled NAs with mean values')
     return cleansed_data
+
+#TODO: Add more advanced imputation instead of determining from text alone
 
 
 def find_first_word(address):
@@ -58,6 +69,8 @@ def find_first_word(address):
     else:
         return first_word
 
+#TODO: Add more advanced imputation instead of determining from speed alone
+
 
 def extract_speed(address):
     """
@@ -77,39 +90,99 @@ def extract_speed(address):
         return 45  # Generic speed limit
 
 
-def join_features(data):
-    """
+def extract_pop_info(polygons, row):
+    """ Extract population information for single instance
+    Based on polygons coordinates from reference data
     Args:
-        data: dataframe to join based on
-    Returns modified existing dataframe to join new features
-    Features added:
-        - Time series info
-        - Traffic info (signals, traffic volumes, population)
-        - Road info (curvature, length, KMeans grouping)
-        - Any other census information
+        polygons: Shapely polygons to inspect (list)
+        row: the dataset training row
+    Returns:
+        tuple: median_age, median_pop for instance
     """
-    # Load static features
-    income = load_csv("census_income.csv")
-    population = load_csv("census_population.csv")
-    roads = load_csv("roads.csv")
-    signals = load_csv("signals.csv")
-    traffic_vol = load_csv("traffic_volumes.csv")
+    for poly_obj in polygons:
+        median_age = None
+        median_pop = None
+        if poly_obj["poly"].contains(Point(row[features.get('lat')], row[features.get('long')])):
+            median_age = poly_obj["median_age"]
+            median_pop = poly_obj["pop_sq_mile"]
+            break
+    return median_age, median_pop
 
-    # Time Series info
-    data[features.get('month')] = data[features.get('datetime')].dt.month
-    data[features.get('day')] = data[features.get('datetime')].dt.day
-    data[features.get('hour')] = data[features.get('datetime')].dt.hour
-    data[features.get('minute')] = data[features.get('datetime')].dt.minute
-    data[features.get('day_of_week')] = data[features.get(
-        'datetime')].dt.dayofweek
 
-    # Road curvature
+def extract_signals(signals, row):
+    """ Extract signal proximity using haversine distance
+    Args:
+        signals: list of valid signal X,Y coords
+        row: the dataset training row
+    Returns:
+        number of signals nearby
+    """
+    dists = haversine_np(
+        signals["Y"], signals["X"], row[features.get('lat')], row[features.get('long')])
+    signals_near = len(dists[dists < 500])
+    return signals_near
+
+
+def extract_road_info(volumes, roads, row):
+    """ Extract road info (volumes, curves, lengths, names)
+    Args:
+        volumes: grouped objects based on reference data
+        roads: roads info created from reference data
+        row: the dataset training row
+    Returns:
+        road volumes, curves, lengths, names
+    """
+    first_word = find_first_word(row[features.get('address')])
+    # Road information
+    if first_word:
+        vols = volumes[volumes["ROUTE"].str.contains(
+            first_word, na=False)]["2016"]
+        curves = roads[roads["STREETNAME"].str.contains(
+            first_word, na=False)]["curve"]
+        lengths = roads[roads["STREETNAME"].str.contains(
+            first_word, na=False)]["ShapeSTLength"]
+        roads_matched = roads[roads["STREETNAME"].str.contains(
+            first_word, na=False)]["STREETNAME"]
+        freq_roads = roads_matched.mode()
+
+        road_name = (freq_roads.iloc[0]
+                     if freq_roads.any() else "GENERIC_STREET")
+        return vols.mean(), curves.mean(), lengths.mean(), road_name
+    else:
+        return None, None, None, "GENERIC_STREET"
+
+
+def create_polygons(population):
+    """ Create section polygons from census information
+    Args:
+        population: dataframe from census reference data
+    Returns:
+        Shapely list of polygons to be used for extraction
+    """
+    polygons = []
+    for _, row in population.iterrows():
+        xs = [float(x) for x in row["coordinates"].split(',')[1::2]]
+        ys = [float(y) for y in row["coordinates"].split(',')[0::2]]
+        coords = zip(xs, ys)
+        polygon = Polygon(list(coords))
+        polygons.append(
+            {'poly': polygon, 'pop_sq_mile': row["PopSqMi"], 'median_age': row["MedianAge"]})
+    return polygons
+
+
+def create_roads(roads):
+    """ Create roads information from roads reference data
+    Args:
+        roads: dataframe from roads reference data
+    Returns:
+        list of road curves for all roads
+    """
     road_curves = []
-    for i, row in roads.iterrows():
+    for _, row in roads.iterrows():
         splitcoords = row["coordinates"].split(",")
         longlats = list(zip(*[iter(splitcoords)]*2))
         latlongs = [tuple(reversed(item))
-                    for item in longlats]  # correct to lat/long
+                    for item in longlats]  # correct to lat/long, reversed
         # LineString (Spatial Lines based on road coords)
         shape_points = []
         for point in latlongs:
@@ -125,56 +198,64 @@ def join_features(data):
         )
         curve = (line.length / dist) if dist != 0 else 0
         road_curves.append(curve)
-    roads["curve"] = road_curves
+    return road_curves
 
-    polygons = []
+
+def join_features(data):
+    """
+    Args:
+        data: dataframe to join based on
+    Returns modified existing dataframe to join new features
+    Features added:
+        - Time series info
+        - Traffic info (signals, traffic volumes, population)
+        - Road info (curvature, length, KMeans grouping)
+        - Any other census information
+    """
+    # Load reference data
+    population, roads, signals, traffic_vol = load_reference_data()
+
+    # Time information
+    data[features.get('month')] = data[features.get('datetime')].dt.month
+    data[features.get('day')] = data[features.get('datetime')].dt.day
+    data[features.get('hour')] = data[features.get('datetime')].dt.hour
+    data[features.get('minute')] = data[features.get('datetime')].dt.minute
+    data[features.get('day_of_week')] = data[features.get(
+        'datetime')].dt.dayofweek
+
+    # Load road information
+    roads["curve"] = create_roads(roads)
+
     # Load polygons from census information
-    for i, row in income.iterrows():
-        xs = [float(x) for x in row["coordinates"].split(',')[1::2]]
-        ys = [float(y) for y in row["coordinates"].split(',')[0::2]]
-        coords = zip(xs, ys)
-        polygon = Polygon(list(coords))
-        polygons.append(polygon)
+    polygons = create_polygons(population)
 
     # Traffic info
     meck_vols = traffic_vol[(traffic_vol["COUNTY"] == "MECKLENBURG") & (
         traffic_vol["2016"] != ' ')][["ROUTE", "2016"]]
     meck_vols["2016"] = meck_vols["2016"].astype(int)
     grouped = meck_vols.groupby(["ROUTE"], as_index=False).mean()
-    mean_vols = []
-    mean_curves = []
-    mean_lengths = []
-    signals_near = []
-    road_names = []
-    # Process data
-    for i, row in data.iterrows():
-        first_word = find_first_word(row[features.get('address')])
-        # Road information
-        if first_word:
-            vols = grouped[grouped["ROUTE"].str.contains(
-                first_word, na=False)]["2016"]
-            curves = roads[roads["STREETNAME"].str.contains(
-                first_word, na=False)]["curve"]
-            lengths = roads[roads["STREETNAME"].str.contains(
-                first_word, na=False)]["ShapeSTLength"]
-            roads_matched = roads[roads["STREETNAME"].str.contains(
-                first_word, na=False)]["STREETNAME"]
-            freq_roads = roads_matched.mode()
-            road_names.append(
-                freq_roads.iloc[0] if freq_roads.any() else "GENERIC_STREET")
-            mean_vols.append(vols.mean())
-            mean_curves.append(curves.mean())
-            mean_lengths.append(lengths.mean())
-        else:
-            road_names.append("GENERIC_STREET")
-            mean_vols.append(0)
-            mean_curves.append(0)
-            mean_lengths.append(0)
+
+    # Main data join with other features
+    mean_vols, mean_curves, mean_lengths, signals_near, road_names, ages, pops = (
+        [], [], [], [], [], [], [])
+
+    for _, row in data.iterrows():
+
+        # Road information (volumes, curves, lengths)
+        vol, curve, length, name = extract_road_info(grouped, roads, row)
+        mean_vols.append(vol)
+        mean_curves.append(curve)
+        mean_lengths.append(length)
+        road_names.append(name)
+
         # Signals proximity
-        dists = haversine_np(
-            signals["Y"], signals["X"], row[features.get('lat')], row[features.get('long')])
-        near = len(dists[dists < 500])
-        signals_near.append(near)
+        signals_near.append(extract_signals(signals, row))
+
+        # Population
+        ages.append(extract_pop_info(polygons, row)[0])
+
+        # Age
+        pops.append(extract_pop_info(polygons, row)[1])
 
     data[features.get('road')] = road_names
     data[features.get('road_curve')] = mean_curves
@@ -183,19 +264,11 @@ def join_features(data):
     data[features.get('signals_near')] = signals_near
     data[features.get('road_speed')] = data[features.get(
         'address')].apply(lambda x: extract_speed(x))
+    data[features.get('median_age')] = ages
+    data[features.get('pop_sq_mile')] = pops
 
     # Clean data before further preprocessing
     cleansed_data = clean_data(data)
-
-    # KMeans road features, standardize road curvatures/lengths features before processing
-    matrix = cleansed_data[[features.get('road_length'),
-                            features.get('road_curve'), features.get('road_speed')]].values
-    scaler = MinMaxScaler()
-    scaled_matrix = scaler.fit_transform(matrix)
-    kroad = KMeans(n_clusters=5, random_state=1234).fit(
-        scaled_matrix)  # Optimal k = 5 based on SSE metrics
-    labels = kroad.labels_
-    cleansed_data[features.get('road_cluster')] = labels
 
     # Weather
     cleansed_data[features.get('weatherCategory')] = cleansed_data[features.get(
@@ -210,8 +283,7 @@ def join_features(data):
         cleansed_data[features.get('sunset')]).minute
 
     _logger.info(
-        'Adding features... joined data features including spatial data')
-    # Return finalized
+        'Added features... joined data features including spatial data')
     return cleansed_data
 
 
@@ -274,7 +346,7 @@ def get_accidents(datasize, host, port):
         cursor = db.get_all(collection='accidents',
                             limit=datasize, order=1)  # asc
         db_accidents = json_normalize(list(cursor))  # flatten weather json
-    _logger.info('Getting data... Retrieved accident data from data source')
+    _logger.info('Retrieved accident data from data source')
 
     # Set correct data types as necessary
     db_accidents[features.get('lat')] = pd.to_numeric(
@@ -301,7 +373,7 @@ def create_train_test_data(datasize, host, port, imbalance_multiplier, test_size
         port: the port for the host
         imbalance_multiplier: Multiplier of the non-accident size
         test_size: test data size proportion
-    Returns train, test, and feature names
+    Returns X_train, y_train, X_test, y_test, and feature names
     """
     # Get actual accidents
     accidents = get_accidents(datasize, host, port)
@@ -320,21 +392,20 @@ def create_train_test_data(datasize, host, port, imbalance_multiplier, test_size
     feature_cols = [features.get('division'),
                     features.get('weatherTemp'),
                     features.get('weatherRain3'),
-                    features.get('weatherSnow1'),
                     features.get('weatherVisibility'),
                     features.get('weatherWindSpeed'),
                     features.get('sunrise_hour'),
-                    features.get('sunset_hour'),
-                    features.get('weatherCategory'),
                     features.get('month'),
                     features.get('hour'),
                     features.get('day_of_week'),
+                    features.get('day'),
                     features.get('road_curve'),
                     features.get('road_length'),
                     features.get('road_volume'),
                     features.get('signals_near'),
                     features.get('road_speed'),
-                    features.get('road_cluster'),
+                    features.get('pop_sq_mile'),
+                    features.get('median_age'),
                     features.get('is_accident')]
     try:
         trainset = trainset[feature_cols]

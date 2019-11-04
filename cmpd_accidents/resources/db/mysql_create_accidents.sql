@@ -2,15 +2,16 @@
 -- Columns are as varchar from service response text/xml, process if needed as specific types
 CREATE DATABASE `cmpd_accidents`;
 CREATE TABLE `cmpd_accidents`.`accidents` (
-  `event_no` VARCHAR(150) NOT NULL,
-  `x_coord` VARCHAR(150) NULL,
-  `y_coord` VARCHAR(150) NULL,
-  `datetime_add` VARCHAR(150) NULL,
-  `event_desc` VARCHAR(250) NULL,
-  `address` VARCHAR(150) NULL,
-  `latitude` VARCHAR(150) NULL,
-  `division` VARCHAR(150) NULL,
-  `longitude` VARCHAR(150) NULL,
-  `event_type` VARCHAR(150) NULL,
+  `EventNo` VARCHAR(150) NOT NULL,
+  `XCoordinate` VARCHAR(150) NULL,
+  `YCoordinate` VARCHAR(150) NULL,
+  `EventDateTime` VARCHAR(150) NULL,
+  `TypeDescription` VARCHAR(250) NULL,
+  `CrossStreet1` VARCHAR(150) NULL,
+  `CrossStreet2` VARCHAR(150) NULL,
+  `Latitude` VARCHAR(150) NULL,
+  `Division` VARCHAR(150) NULL,
+  `Longitude` VARCHAR(150) NULL,
+  `TypeCode` VARCHAR(150) NULL,
   `weatherInfo` JSON,
-  PRIMARY KEY (`event_no`));
+  PRIMARY KEY (`EventNo`));

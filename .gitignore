@@ -107,3 +107,12 @@ venv.bak/
 log/
 cover/
 .vscode
+test.csv
+predicted.csv
+trainset.csv
+predictions.csv
+dbscan.csv
+trainset_test.csv
+
+# Google Cloud
+*credentials.json
