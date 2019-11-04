@@ -51,5 +51,5 @@ class CMPDService(object):
                 json["weatherInfo"] = weather_details
                 final_data.append(json)
             with self.database as db:
-                db.insert_bulk(collection="accidents",
+                db.insert_bulk(collection="accidentsv2",
                                items=final_data)  # persist data
