@@ -46,12 +46,12 @@ That's it! All other data is stored as reference data from the latest census inf
 To check for current accidents and store them via MongoDB:
 ```
 import cmpd_accidents as cmpd
-cmpd.update_traffic_data(<MongoDB host>, <MongoDB port>, <OpenWeather api key>) 
+cmpd.update_traffic_data(<MongoDB host>, <OpenWeather api key>) 
 ```
 It is preferable to setup a job-type service to run the API incrementally over time.
 Setup cron job to run every 5 minutes:
 ```
-*/5 * * * * cd <your-repo-location>/cmpd_accidents && sudo python3 main.py mongodb://<user>:<password>@<host>/<databasename> <port> <OpenWeather api key>
+*/5 * * * * cd <your-repo-location>/cmpd_accidents && sudo python3 main.py mongodb://<user>:<password>@<host>/<databasename> <OpenWeather api key>
 ```
 
 ## Predicting Accident Likelihood
@@ -86,6 +86,7 @@ python setup.py test
 - [X] Analyze existing traffic prediction models and develop mock model
 - [ ] Test mock models and provide detailed transparency
 - [ ] Utilize created model to provide insight for current traffic patterns and information
+- [ ] Scale to external cloud (Google AI)
 - [ ] Create Python web service via hosting solution to call mock model and integrate with web portal
 - [ ] Finalize and push Python package to PyPI
 - [ ] Fix any new bugs
