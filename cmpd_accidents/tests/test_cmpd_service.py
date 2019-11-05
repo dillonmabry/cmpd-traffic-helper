@@ -12,7 +12,7 @@ class TestCMPDService(TestCase):
         endpoint = 'https://cmpdinfo.charlottenc.gov/api/v2/traffic'
         mock_rest = cmpd_accidents.RestService(endpoint)
         # DB
-        mock_db = cmpd_accidents.MongoDBConnect("localhost", 27017)
+        mock_db = cmpd_accidents.MongoDBConnect("localhost")
         # Weather
         weather = cmpd_accidents.WeatherService(
             endpoint='https://samples.openweathermap.org/data/2.5/weather',
@@ -35,7 +35,7 @@ class TestCMPDService(TestCase):
         endpoint = 'https://cmpdinfo.charlottenc.gov/api/v2/traffic'
         mock_rest = cmpd_accidents.RestService(endpoint)
         # DB
-        mock_db = cmpd_accidents.MongoDBConnect("localhost", 27017)
+        mock_db = cmpd_accidents.MongoDBConnect("localhost")
         # Weather
         weather = cmpd_accidents.WeatherService(
             endpoint='https://samples.openweathermap.org/data/2.5/weather',
