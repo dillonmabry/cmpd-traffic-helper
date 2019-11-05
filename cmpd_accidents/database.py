@@ -16,20 +16,18 @@ class MongoDBConnect(object):
     """
     The Mongo database connector
     Args:
-        host: host to connect, if empty default to localhost
-        port: port to connect, if empty default to mongodb port
+        host: host to connect
         collection: the collection to use
     """
 
-    def __init__(self, host='localhost', port=27017):
+    def __init__(self, host):
         self.host = host
-        self.port = port
         self.connection = None
         self.logger = Logger('log', self.__class__.__name__,
                              maxbytes=10 * 1024 * 1024).get()
 
     def __enter__(self):
-        self.connection = MongoClient(self.host, self.port)
+        self.connection = MongoClient(self.host)
         self.logger.info(
             'Mongo connection created: {0}'.format(self.connection))
         return self
